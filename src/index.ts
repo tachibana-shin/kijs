@@ -1,102 +1,57 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import createFragment from "./utils/createFragment";
 import { isArrayLike } from "./utils/is";
 
+type TypeOrArray<T> = T | readonly T[];
+type Node = Element | Text | Comment | Document | DocumentFragment;
+type htmlString = string;
+type Selector = string;
+type ReturnMyjs<TElement> = Myjs<TElement> & {
+  readonly [index: number]: TElement;
+};
+
 const rSelector = /[a-zA-Z_]|\.|#/;
+export default function myjs<TElement = HTMLElement>(
+  selector: Selector | TypeOrArray<Element> | htmlString | Node
+): ReturnMyjs<TElement> {
+  return new Myjs<TElement>(selector) as any;
+}
 
-class My {
-  readonly elements = new Set<Element>();
-  get length(): number {
-    return this.elements.size;
-  }
-
-  constructor(selectors: string | Element | Element[] | My) {
-    if (selectors instanceof My) {
-      return selectors as any;
+class Myjs<TElement = HTMLElement> {
+  // eslint-disable-next-line functional/prefer-readonly-type
+  length = 0;
+  constructor(selector: Selector | TypeOrArray<Element> | htmlString | Node) {
+    if (selector instanceof Myjs) {
+      return selector as any;
     }
-    if (typeof selectors === "string") {
-      // document
-      selectors = selectors.trim();
 
-      if (rSelector.test((selectors as any)[0])) {
+    // eslint-disable-next-line functional/prefer-readonly-type
+    const elements: Element[] = [];
+    if (typeof selector === "string") {
+      // document
+      selector = selector.trim();
+
+      if (rSelector.test(selector[0])) {
         // this is query
-        document.querySelectorAll(selectors as string).forEach((el) => {
-          this.elements.add(el as any);
+        document.querySelectorAll<HTMLElement>(selector).forEach((el) => {
+          // eslint-disable-next-line functional/immutable-data
+          elements.push(el as any);
         });
       } else {
         // create element
-        createFragment(selectors).childNodes.forEach((el) => {
-          this.elements.add(el as unknown as Element);
+        createFragment(selector).childNodes.forEach((el) => {
+          // eslint-disable-next-line functional/immutable-data
+          elements.push(el as any);
         });
       }
-
-      return;
     }
-    if (Array.isArray(selectors)) {
-      selectors.forEach((el) => {
-        this.elements.add(el);
-      });
-
-      return;
+    if (isArrayLike(selector)) {
+      // eslint-disable-next-line functional/immutable-data
+      elements.push(...selector);
     }
-    this.elements.add(selectors);
-  }
 
-  eq(index: number): My {
-    return new My(
-      Array.from(this.elements.values())[
-        index < 0 ? this.length + index : index
-      ]
-    );
-  }
-  get(index: number) {
-    return Array.from(this.elements.values())[
-      index < 0 ? this.length + index : index
-    ];
-  }
-  first() {
-    return this.eq(0);
-  }
-  last() {
-    return this.eq(-1);
-  }
-  child(index: number) {
-    const els = new Set<Element>();
-
-    this.elements.forEach((el) => {
-      const a = el.children[index < 0 ? el.children.length + index : index];
-      els.add(a);
+    elements.forEach((item, index) => {
+      (this as any)[index] = item;
     });
-
-    return new My([...els.values()]);
   }
-  contents() {
-    const els: ChildNode[] = [];
-
-    this.elements.forEach((el) => {
-      if (el.nodeName === "IFRAME") {
-        els.push(
-          ...((el as HTMLIFrameElement).contentDocument?.childNodes || [])
-        );
-      } else if (el.nodeName === "TEMPLATE") {
-        els.push(...(el as HTMLTemplateElement).content.childNodes);
-      }
-    });
-
-    return new My(els as any);
-  }
-  prop(propName: keyof Element | string): typeof propName extends keyof Element ? Element[typeof propName] : any;
-  prop(propName: keyof Element | string, value: Element[typeof propName]): this;
-  prop(
-    propName: keyof Element,
-    value?: Element[typeof propName]
-  ): Element[typeof propName] | this {
-    if (value === undefined) {
-      return this.get(0)[propName];
-    }
-
-    (this.get(0) as any)[propName as unknown as any] = value;
-
-    return this;
-  }
-  removeProp(propName: )
 }

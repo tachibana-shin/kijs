@@ -1,12 +1,10 @@
-// eslint-disable-next-line @typescript-eslint/ban-types
+// eslint-disable-next-line @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any
 export function isFunction(e: any): e is Function {
   return typeof e === "function" && typeof e.nodeType !== "number";
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function isArrayLike(arr: any): arr is Record<any, any> & {
-  readonly length: number;
-} {
+export function isArrayLike(arr: any): arr is readonly any[] {
   if (isFunction(arr) || arr === window) return false;
   return isObject(arr) && "length" in arr;
 }
