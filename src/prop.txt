@@ -19,9 +19,7 @@ fadeToggle
 delay
 ---
 load
-offset
-position
-offsetParent
+---
 scrollLeft
 scrollTop
 innerHeight
