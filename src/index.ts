@@ -837,6 +837,46 @@ class Myjs<TElement = HTMLElement> {
 
     return this;
   }
+  attr(name: string): void | string;
+  attr(name: string, value: string): this;
+  attr(name: string, value?: string) {
+    if(value === void 0) {
+      return attr(this[0], name)
+    }
+    
+    this.each((i, v) => {
+      attr(v, nsme, value)
+    })
+    
+    return this
+  }
+  removeAttr(name: string): this {
+    this.each((i, v) => {
+      removeAttr(v, name)
+    })
+    
+    return this
+  }
+  prop<T = any>(name: string): void | T;
+  prop<T = any>(name: string, value: T): this;
+  prop<T = any>(name: string, value?: T) {
+    if(value === void 0) {
+      return prop(this[0], name)
+    }
+    
+    this.each((i, v) => {
+      prop(v, nsme, value)
+    })
+    
+    return this
+  }
+  removeProp(name: string): this {
+    this.each((i, v) => {
+      removeProp(v, name)
+    })
+    
+return this
+  }
 }
 
 function insertElements<TElement = HTMLElement>(

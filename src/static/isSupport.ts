@@ -60,7 +60,23 @@ function roundPixelMeasures(measure) {
 div.style.backgroundClip = "content-box";
 div.cloneNode(true).style.backgroundClip = "";
 
+const input = document.createElement("input"),
+  select = document.createElement("select"),
+  opt = select.appendChild(document.createElement("option"));
+
+input.type = "checkbox";
+
+const checkOn = input.value !== ""
+
+input = document.createElement("input");
+input.value = "t";
+input.type = "radio";
+
+
 export default {
+  checkOn,
+  optSelected: opt.selected,
+  radioValue: input.value === "t",
   clearCloneStyle: div.style.backgroundClip === "content-box",
   boxSizingReliable() {
     computeStyleTests();
@@ -122,8 +138,8 @@ export default {
       trStyle = window.getComputedStyle(tr);
       reliableTrDimensionsVal =
         parseInt(trStyle.height, 10) +
-          parseInt(trStyle.borderTopWidth, 10) +
-          parseInt(trStyle.borderBottomWidth, 10) ===
+        parseInt(trStyle.borderTopWidth, 10) +
+        parseInt(trStyle.borderBottomWidth, 10) ===
         tr.offsetHeight;
 
       documentElement.removeChild(table);

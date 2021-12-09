@@ -18,10 +18,6 @@ fadeOut
 fadeToggle
 delay
 ---
-attr
-removeAttr
-prop
-removeProp
 addClass
 removeClass
 toggleClass
