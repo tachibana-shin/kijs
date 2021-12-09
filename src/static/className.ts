@@ -1,160 +1,171 @@
+const rnothtmlwhite = (/[^\x20\t\r\n\f]+/g);
 
-jQuery.fn.extend( {
-	addClass: function( value ) {
-		var classes, elem, cur, curValue, clazz, j, finalValue,
-			i = 0;
+function classesToArray(value: string | string[]): string[] {
+  if (Array.isArray(value)) {
+    return value;
+  }
+  if (typeof value === "string") {
+    return value.match(rnothtmlwhite) || [];
+  }
+  return [];
+}
 
-		if ( isFunction( value ) ) {
-			return this.each( function( j ) {
-				jQuery( this ).addClass( value.call( this, j, getClass( this ) ) );
-			} );
-		}
+function getClass < TElement = HTMLElement > (elem: TElement): string {
+  return elem?.getAttribute("class") || elem?.className || ""
+}
 
-		classes = classesToArray( value );
+export function stripAndCollapse(value: string): string {
+  var tokens = value.match(rnothtmlwhite) || [];
+  return tokens.join(" ");
+}
 
-		if ( classes.length ) {
-			while ( ( elem = this[ i++ ] ) ) {
-				curValue = getClass( elem );
-				cur = elem.nodeType === 1 && ( " " + stripAndCollapse( curValue ) + " " );
+function addClass < TElement = HTMLElement > (elems: LikeArray < TElement > , value: string | string[] | ((index: number, currentClass: string) => string | string[])): void {
 
-				if ( cur ) {
-					j = 0;
-					while ( ( clazz = classes[ j++ ] ) ) {
-						if ( cur.indexOf( " " + clazz + " " ) < 0 ) {
-							cur += clazz + " ";
-						}
-					}
+  if (isFunction(value)) {
+    each(elems, (j, elem) => {
+      addClass([elem], value.call(elem, j, getClass(elem)));
+    });
 
-					// Only assign if different to avoid unneeded rendering.
-					finalValue = stripAndCollapse( cur );
-					if ( curValue !== finalValue ) {
-						elem.setAttribute( "class", finalValue );
-					}
-				}
-			}
-		}
+    return
+  }
 
-		return this;
-	},
+  const classes = classesToArray(value);
 
-	removeClass: function( value ) {
-		var classes, elem, cur, curValue, clazz, j, finalValue,
-			i = 0;
+  if (classes.length) {
+    each(elems, (i, elem) => {
+      const curValue = getClass(elem);
+      let cur = elem.nodeType === 1 && (" " + stripAndCollapse(curValue) + " ");
 
-		if ( isFunction( value ) ) {
-			return this.each( function( j ) {
-				jQuery( this ).removeClass( value.call( this, j, getClass( this ) ) );
-			} );
-		}
+      if (cur) {
+        each(classes, (i, clazz) => {
+          if (cur.indexOf(" " + clazz + " ") < 0) {
+            cur += clazz + " ";
+          }
+        })
 
-		if ( !arguments.length ) {
-			return this.attr( "class", "" );
-		}
+        // Only assign if different to avoid unneeded rendering.
+        finalValue = stripAndCollapse(cur);
+        if (curValue !== finalValue) {
+          elem.setAttribute("class", finalValue);
+        }
+      }
+    })
+  }
 
-		classes = classesToArray( value );
 
-		if ( classes.length ) {
-			while ( ( elem = this[ i++ ] ) ) {
-				curValue = getClass( elem );
+}
 
-				// This expression is here for better compressibility (see addClass)
-				cur = elem.nodeType === 1 && ( " " + stripAndCollapse( curValue ) + " " );
+function removeClass < TElement = HTMLElement > (elems: LikeArray < TElement > , value ? : string | string[] | ((index: number, currentClass: string) => string | string[])): void {
 
-				if ( cur ) {
-					j = 0;
-					while ( ( clazz = classes[ j++ ] ) ) {
+  if (isFunction(value)) {
+    each(elems, (j, elem) => {
+      removeClass([elem], value.call(elem, j, getClass(elem)));
+    });
 
-						// Remove *all* instances
-						while ( cur.indexOf( " " + clazz + " " ) > -1 ) {
-							cur = cur.replace( " " + clazz + " ", " " );
-						}
-					}
+    return
+  }
 
-					// Only assign if different to avoid unneeded rendering.
-					finalValue = stripAndCollapse( cur );
-					if ( curValue !== finalValue ) {
-						elem.setAttribute( "class", finalValue );
-					}
-				}
-			}
-		}
+  if (value === void 0) {
+    attr(elems, "class", "");
+    return
+  }
 
-		return this;
-	},
+  const classes = classesToArray(value);
 
-	toggleClass: function( value, stateVal ) {
-		var type = typeof value,
-			isValidValue = type === "string" || Array.isArray( value );
+  if (classes.length) {
+    each(elems, (i, elem) => {
+      const curValue = getClass(elem);
 
-		if ( typeof stateVal === "boolean" && isValidValue ) {
-			return stateVal ? this.addClass( value ) : this.removeClass( value );
-		}
+      let cur = elem.nodeType === 1 && (" " + stripAndCollapse(curValue) + " ");
 
-		if ( isFunction( value ) ) {
-			return this.each( function( i ) {
-				jQuery( this ).toggleClass(
-					value.call( this, i, getClass( this ), stateVal ),
-					stateVal
-				);
-			} );
-		}
+      if (cur) {
+        each(classes, (i, clazz) => {
+          // Remove *all* instances
+          while (cur.indexOf(" " + clazz + " ") > -1) {
+            cur = cur.replace(" " + clazz + " ", " ");
+          }
+        })
 
-		return this.each( function() {
-			var className, i, self, classNames;
+        // Only assign if different to avoid unneeded rendering.
+        finalValue = stripAndCollapse(cur);
+        if (curValue !== finalValue) {
+          elem.setAttribute("class", finalValue);
+        }
+      }
+    })
+  }
 
-			if ( isValidValue ) {
+}
 
-				// Toggle individual class names
-				i = 0;
-				self = jQuery( this );
-				classNames = classesToArray( value );
+function toggleClass < TElement = HTMLElement > (elems: LikeArray < TElement > , value: string | string[] | ((index: number, currentClass: string) => string | string[]), stateVal ? : boolean): void {
+  const type = typeof value,
+    isValidValue = type === "string" || Array.isArray(value);
 
-				while ( ( className = classNames[ i++ ] ) ) {
+  if (typeof stateVal === "boolean" && isValidValue) {
+    return stateVal ? addClass(elems, value) : removeClass(elems, value);
+  }
 
-					// Check each className given, space separated list
-					if ( self.hasClass( className ) ) {
-						self.removeClass( className );
-					} else {
-						self.addClass( className );
-					}
-				}
+  if (isFunction(value)) {
+    each(elems, (i, elem) => {
+      toggleClass(elem,
+        value.call(this, i, getClass(this), stateVal),
+        stateVal
+      );
+    });
 
-			// Toggle whole class name
-			} else if ( value === undefined || type === "boolean" ) {
-				className = getClass( this );
-				if ( className ) {
+    return
+  }
 
-					// Store className if set
-					dataPriv.set( this, "__className__", className );
-				}
+  each(elems, (i, elem) => {
+    var className, i, self, classNames;
 
-				// If the element has a class name or if we're passed `false`,
-				// then remove the whole classname (if there was one, the above saved it).
-				// Otherwise bring back whatever was previously saved (if anything),
-				// falling back to the empty string if nothing was stored.
-				if ( this.setAttribute ) {
-					this.setAttribute( "class",
-						className || value === false ?
-							"" :
-							dataPriv.get( this, "__className__" ) || ""
-					);
-				}
-			}
-		} );
-	},
+    if (isValidValue) {
 
-	hasClass: function( selector ) {
-		var className, elem,
-			i = 0;
+      each(classesToArray(value), (i, className) => {
+        if (hasClass(elem, className)) {
+          removeClass(elem, className);
+        } else {
+          addClass(elm, className);
+        }
+      })
 
-		className = " " + selector + " ";
-		while ( ( elem = this[ i++ ] ) ) {
-			if ( elem.nodeType === 1 &&
-				( " " + stripAndCollapse( getClass( elem ) ) + " " ).indexOf( className ) > -1 ) {
-				return true;
-			}
-		}
 
-		return false;
-	}
-} );
+
+      // Toggle whole class name
+    } else if (value === undefined || type === "boolean") {
+      const className = getClass(elem);
+      if (className) {
+        data(elem, "__className__", className);
+      }
+
+      elem.setAttribute("class",
+        className || value === false ?
+        "" :
+        data(elem, "__className__") || ""
+      )
+
+    }
+  });
+}
+
+function hasClass < TElement = HTMLElement > (elems: LikeArray < TElement > , selector: string): boolean {
+  let elem,
+    i = 0;
+
+  const className = " " + selector + " ";
+  while ((elem = elems[i++])) {
+    if (elem.nodeType === 1 &&
+      (" " + stripAndCollapse(getClass(elem)) + " ").indexOf(className) > -1) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+export {
+  addClass,
+  removeClass,
+  toggleClass,
+  hasClass
+}

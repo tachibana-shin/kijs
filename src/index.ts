@@ -20,7 +20,10 @@ type CustomElementAdd = string | Element | Text;
 
 const rSelector = /[a-zA-Z_]|\.|#/;
 export default function myjs<TElement = HTMLElement>(
-  selector: ParamNewMyjs
+  selector: ParamNewMyjs,
+  
+    prevObject?: myjs<TElement>,
+    context = document
 ): ReturnMyjs<TElement> {
   return new Myjs<TElement>(selector) as any;
 }
@@ -32,11 +35,14 @@ class Myjs<TElement = HTMLElement> {
     return true;
   }
   #prevObject: myjs<TElement> | void = undefined;
+  #context = document
   constructor(
     selector: Selector | TypeOrArray<Element> | htmlString | Node,
-    prevObject?: myjs<TElement>
+    prevObject?: myjs<TElement>,
+    context = document
   ) {
     this.#prevObject = prevObject;
+    this.#context = context
     if (selector instanceof Myjs) {
       return selector as any;
     }
@@ -877,6 +883,162 @@ class Myjs<TElement = HTMLElement> {
     
 return this
   }
+  addClass(classes: string | string[] | ((index: number, className: string) => string | string[])): this {
+    addClass(this, classes)
+    
+    return this
+  }
+  removeClass(classes: string | string[] | ((index: number, className: string) => string | string[])): this {
+    removeClass(this, classes)
+    
+    return this
+  }
+  toggleClass(classes: string | string[] | ((index: number, className: string) => string | string[])): this {
+    toggleClass(this, classes)
+    
+    return this
+  }
+  hasClass(clazz: string): boolean {
+    return hasClass(this, classes)
+  }
+  value(): string | number | (string | number)[]
+  value(value: string | number | (string | number)[]): this
+  value(val?: any) {
+    if (val === void 0) {
+      return value(this)
+    }
+    
+    value(this, val)
+    
+    return this
+  }
+  val = value
+  trigger(name: string, data: any) {
+    this.each((i, elem) => {
+      const event = new Event(name)
+      event.data = data
+      
+      elem.dispatchEvent(event)
+    })
+    
+    return this
+  }
+  triggerHandler(name: string, data: any): any {
+    let lastVal
+    weakCacheEvent.get(this[0])?.get(name).forEach(cb => {
+      const event = new Event(name)
+      event.data = data
+      lastVal = cb.handler.call(this[0], event)
+    })
+    
+    return lastVal
+  }
+  serialize(): string {
+    return toParam(this.serializeArray())
+  }
+	serializeArray(): {
+	  name: string;
+	  value: string;
+	}[] {
+		return this.map( (i, elem) => {
+			var elements = prop( elem, "elements" );
+			return elements ? Array.from( elements ) : this;
+		} )
+		.filter( function(i, elem) {
+			var type = elem.type;
+
+			return this.name && !myjs(elem).is( ":disabled" ) &&
+				rsubmittable.test( elem.nodeName ) && !rsubmitterTypes.test( type ) &&
+				( elem.checked || !rcheckableType.test( type ) );
+		} ).map( function( _i, elem ) {
+			var val = value(elem)
+
+			if ( val == null ) {
+				return null;
+			}
+
+			if ( Array.isArray( val ) ) {
+				return val.map(( val ) => {
+					return {
+					  name: elem.name,
+					  value: val.replace( rCRLF, "\r\n" )
+					};
+				} );
+			}
+
+			return { name: elem.name, value: val.replace( rCRLF, "\r\n" ) };
+		} ).get();
+	}
+	
+	wrapAll( html: ParamNewMyjs ): this {
+		var wrap;
+
+		if ( this[ 0 ] ) {
+			if ( isFunction( html ) ) {
+				html = html.call( this[ 0 ] );
+			}
+
+			// The elements to wrap the target around
+			wrap = myjs( html, this, this[ 0 ].ownerDocument ).eq( 0 ).clone( true );
+
+			if ( this[ 0 ].parentNode ) {
+				wrap.insertBefore( this[ 0 ] );
+			}
+
+			wrap.map((i, elem) => {
+	
+
+				while ( elem.firstElementChild ) {
+					elem = elem.firstElementChild;
+				}
+
+				return elem;
+			} ).append( this );
+		}
+
+		return this;
+	}
+
+	wrapInner( html: ParamNewMyjs ): this {
+		if ( isFunction( html ) ) {
+			this.each( function( i, e ) {
+				myjs(e ).wrapInner( html.call( this, i ) );
+			} );
+			
+			return this
+		}
+
+		 this.each( function(i, e) {
+			var self = myjs( e ),
+				contents = self.contents();
+
+			if ( contents.length ) {
+				contents.wrapAll( html );
+
+			} else {
+				self.append( html );
+			}
+		} );
+		
+		return this
+	}
+
+	wrap( html: ParamNewMyjs | ((index: number, element: TElement) => ParamNewMyjs) ): this {
+		var htmlIsFunction = isFunction( html );
+
+		this.each( function( i ) {
+			myjs( this ).wrapAll( htmlIsFunction ? html.call( this, i ) : html );
+		} );
+		
+		return this
+	},
+
+	unwrap( selector: string ): this {
+		this.parent( selector ).not( "body" ).each((i, e) => {
+			myjs( e ).replaceWith( this.childNodes );
+		} );
+		return this;
+	}
 }
 
 function insertElements<TElement = HTMLElement>(
