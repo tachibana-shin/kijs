@@ -6,8 +6,6 @@ promise
 show
 hide
 toggle
----
-css
 fadeTo
 animate
 stop
@@ -19,6 +17,7 @@ fadeIn
 fadeOut
 fadeToggle
 delay
+---
 attr
 removeAttr
 prop
