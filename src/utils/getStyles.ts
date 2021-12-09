@@ -1,4 +1,4 @@
-export default function getStyles < TElement = HTMLElement > (elem: TElement) {
+export default function getStyles<TElement = HTMLElement>(elem: TElement) {
   const view = elem.ownerDocument.defaultView;
 
   if (!view || !view.opener) {
@@ -6,4 +6,4 @@ export default function getStyles < TElement = HTMLElement > (elem: TElement) {
   }
 
   return view.getComputedStyle(elem);
-};
+}

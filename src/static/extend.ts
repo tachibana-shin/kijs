@@ -1,8 +1,13 @@
-import { isFunction, isPlainObject } from "../utils/is"
+import { isFunction, isPlainObject } from "../utils/is";
 
-function extend(deep: boolean, ...src: object[]): any
+function extend(deep: boolean, ...src: object[]): any;
 function extend() {
-  var options, name, src, copy, copyIsArray, clone,
+  var options,
+    name,
+    src,
+    copy,
+    copyIsArray,
+    clone,
     target = arguments[0] || {},
     i = 1,
     length = arguments.length,
@@ -29,10 +34,8 @@ function extend() {
   }
 
   for (; i < length; i++) {
-
     // Only deal with non-null/undefined values
     if ((options = arguments[i]) != null) {
-
       // Extend the base object
       for (name in options) {
         copy = options[name];
@@ -44,8 +47,11 @@ function extend() {
         }
 
         // Recurse if we're merging plain objects or arrays
-        if (deep && copy && (isPlainObject(copy) ||
-            (copyIsArray = Array.isArray(copy)))) {
+        if (
+          deep &&
+          copy &&
+          (isPlainObject(copy) || (copyIsArray = Array.isArray(copy)))
+        ) {
           src = target[name];
 
           // Ensure proper type for the source value
@@ -73,4 +79,4 @@ function extend() {
   return target;
 }
 
-export default extend
+export default extend;

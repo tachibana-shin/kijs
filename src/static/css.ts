@@ -1,14 +1,20 @@
-import style from "./style"
-import support from "./isSupport"
-import getStyles from "../utils/getStyles"
+import style from "./style";
+import support from "./isSupport";
+import getStyles from "../utils/getStyles";
 
-const pnum = (/[+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|)/).source;
+const pnum = /[+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|)/.source;
 const rcssNum = new RegExp("^(?:([+-])=|)(" + pnum + ")([a-z%]*)$", "i");
 const rnumnonpx = new RegExp("^(" + pnum + ")(?!px)[a-z%]+$", "i");
 
-function curCSS < TElement = HTMLElement > (elem: TElement, name: string, computed ? : Record < string, any > ) {
-  var width, minWidth, maxWidth, ret,
-
+function curCSS<TElement = HTMLElement>(
+  elem: TElement,
+  name: string,
+  computed?: Record<string, any>
+) {
+  var width,
+    minWidth,
+    maxWidth,
+    ret,
     style = elem.style;
 
   computed = computed || getStyles(elem);
@@ -24,7 +30,6 @@ function curCSS < TElement = HTMLElement > (elem: TElement, name: string, comput
     }
 
     if (!support.pixelBoxStyles() && rnumnonpx.test(ret) && on.test(name)) {
-
       // Remember the original values
       width = style.width;
       minWidth = style.minWidth;
@@ -41,27 +46,40 @@ function curCSS < TElement = HTMLElement > (elem: TElement, name: string, comput
     }
   }
 
-  return ret !== undefined ?
-
-    // Support: IE <=9 - 11 only
-    // IE returns zIndex value as an integer.
-    ret + "" :
-    ret;
+  return ret !== undefined
+    ? // Support: IE <=9 - 11 only
+      // IE returns zIndex value as an integer.
+      ret + ""
+    : ret;
 }
 
+function css<TElement = HTMLElement>(
+  elem: TElement,
+  name: string
+): string | number | void;
 
-function css < TElement = HTMLElement > (elem: TElement, name: string): string | number | void
+function css<TElement = HTMLElement>(
+  elem: TElement,
+  name: string,
+  extra = false,
+  styles
+): void;
 
-function css < TElement = HTMLElement > (elem: TElement, name: string, extra = false, styles): void
-
-function css < TElement = HTMLElement > (elem: TElement, name: string, extra = false, styles?: Record<string, any>) {
-  var val, num, hooks,
+function css<TElement = HTMLElement>(
+  elem: TElement,
+  name: string,
+  extra = false,
+  styles?: Record<string, any>
+) {
+  var val,
+    num,
+    hooks,
     origName = camelCase(name),
     isCustomProp = rcustomProp.test(name);
 
   // Make sure that we're working with the right name. We don't
   // want to modify the value if it is a CSS custom property
-   // since they are user-defined.
+  // since they are user-defined.
   if (!isCustomProp) {
     name = finalPropName(origName);
   }
@@ -93,4 +111,4 @@ function css < TElement = HTMLElement > (elem: TElement, name: string, extra = f
   return val;
 }
 
-export default css
+export default css;

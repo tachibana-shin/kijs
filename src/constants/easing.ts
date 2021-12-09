@@ -5,5 +5,5 @@ export default {
   swing(p: number): number {
     return 0.5 - Math.cos(p * Math.PI) / 2;
   },
-  _default: "swing"
+  _default: "swing",
 };

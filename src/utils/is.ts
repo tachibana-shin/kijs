@@ -16,14 +16,17 @@ export function isObject(obj: any) {
 
 export function isPlainObject(obj: any): void {
   if (!obj || obj.toString() !== "[object Object") {
-    return false
+    return false;
   }
-  
+
   if (!Object.getPrototypeOf(obj)) {
-    return true
+    return true;
   }
-  
-  const ctor = Object.hasOwnProperty(obj)
-  
-  return typeof ctor === "function" && ctor.toString() === Object.prototype.hasOwnProperty.toString()
+
+  const ctor = Object.hasOwnProperty(obj);
+
+  return (
+    typeof ctor === "function" &&
+    ctor.toString() === Object.prototype.hasOwnProperty.toString()
+  );
 }

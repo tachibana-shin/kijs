@@ -1,16 +1,20 @@
-var pixelPositionVal, boxSizingReliableVal, scrollboxSizeVal, pixelBoxStylesVal,
-  reliableTrDimensionsVal, reliableMarginLeftVal,
-  container = document.createElement("div"),
+let pixelPositionVal,
+  boxSizingReliableVal,
+  scrollboxSizeVal,
+  pixelBoxStylesVal,
+  reliableTrDimensionsVal,
+  reliableMarginLeftVal;
+const container = document.createElement("div"),
   div = document.createElement("div");
 
 function computeStyleTests() {
-
   // This is a singleton, we need to execute it only once
   if (!div) {
     return;
   }
 
-  container.style.cssText = "position:absolute;left:-11111px;width:60px;" +
+  container.style.cssText =
+    "position:absolute;left:-11111px;width:60px;" +
     "margin-top:1px;padding:0;border:0";
   div.style.cssText =
     "position:relative;display:block;box-sizing:border-box;overflow:scroll;" +
@@ -18,7 +22,7 @@ function computeStyleTests() {
     "width:60%;top:1%";
   documentElement.appendChild(container).appendChild(div);
 
-  var divStyle = window.getComputedStyle(div);
+  const divStyle = window.getComputedStyle(div);
   pixelPositionVal = divStyle.top !== "1%";
 
   // Support: Android 4.0 - 4.3 only, Firefox <=3 - 44
@@ -51,13 +55,12 @@ function roundPixelMeasures(measure) {
   return Math.round(parseFloat(measure));
 }
 
-
 // Support: IE <=9 - 11 only
 // Style of cloned element affects source element cloned (#8908)
 div.style.backgroundClip = "content-box";
 div.cloneNode(true).style.backgroundClip = "";
 
-export default ({
+export default {
   clearCloneStyle: div.style.backgroundClip === "content-box",
   boxSizingReliable() {
     computeStyleTests();
@@ -96,7 +99,8 @@ export default ({
       tr = document.createElement("tr");
       trChild = document.createElement("div");
 
-      table.style.cssText = "position:absolute;left:-11111px;border-collapse:separate";
+      table.style.cssText =
+        "position:absolute;left:-11111px;border-collapse:separate";
       tr.style.cssText = "border:1px solid";
 
       // Support: Chrome 86+
@@ -113,18 +117,17 @@ export default ({
       // gets around this issue.
       trChild.style.display = "block";
 
-      documentElement
-        .appendChild(table)
-        .appendChild(tr)
-        .appendChild(trChild);
+      documentElement.appendChild(table).appendChild(tr).appendChild(trChild);
 
       trStyle = window.getComputedStyle(tr);
-      reliableTrDimensionsVal = (parseInt(trStyle.height, 10) +
-        parseInt(trStyle.borderTopWidth, 10) +
-        parseInt(trStyle.borderBottomWidth, 10)) === tr.offsetHeight;
+      reliableTrDimensionsVal =
+        parseInt(trStyle.height, 10) +
+          parseInt(trStyle.borderTopWidth, 10) +
+          parseInt(trStyle.borderBottomWidth, 10) ===
+        tr.offsetHeight;
 
       documentElement.removeChild(table);
     }
     return reliableTrDimensionsVal;
-  }
-});
+  },
+};
