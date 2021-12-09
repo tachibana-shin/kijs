@@ -918,7 +918,11 @@ return this
       const event = new Event(name)
       event.data = data
       
-      elem.dispatchEvent(event)
+      if (elem[name] && data === void 0) {
+        elem[name]()
+      } else {
+        elem.dispatchEvent(event)
+      }
     })
     
     return this
@@ -1093,7 +1097,133 @@ return this
     pageOffset(this, "scrollTop", value)
   }
 	
+	// space
+	innerWidth(value: number): this;
+	innerWidth(): number
+	width(value: number): this;
+	width(): number
+	outerWidth(value: number): this;
+	outerWidth(): number
+	innerHeight(value: number): this;
+	innerHeight(): number
+	height(value: number): this;
+	height(): number
+	outerHeight(value: number): this;
+	outerheight(): number
+	bind< N extends string, E extends Event > (
+	  name: N,
+	  callback: (this: TElement, event: E) => void
+	): this {
+		return this.on( types, null, fn );
+	}
+	unbind< N extends string, E extends Event > (
+	  name: N,
+	  callback: (this: TElement, event: E) => void
+	): this {
+		return this.off( name, null, callback );
+	}
+
+	delegate< N extends string, E extends Event > (
+	  selector: string,
+	  name: N,
+	  callback: (this: TElement, event: E) => void
+	): this{
+		return this.on( name, selector, callback );
+	}
+	undelegate< N extends string, E extends Event > (
+	  selector: string,
+	  name: N,
+	  callback: (this: TElement, event: E) => void
+	): this {
+
+		// ( namespace ) or ( selector, types [, fn] )
+		return arguments.length === 1 ?
+			this.off( selector, "*" ) :
+			this.off( name, selector || "*", callback );
+	}
+	
+	mouseenter(cb: (event: MouseEvent) => void) : this {
+	  return this.on("mouseover", cb)
+	}
+	mouseleave(cb: (event: MouseEvent) => void): this {
+	  return this.on("mouseout", cb)
+	}
+
+	hover( fnOver: (event: MouseEvent) => void, fnOut: (event: MouseEvent) => void ) {
+		return this.mouseenter( fnOver ).mouseleave( fnOut || fnOver );
+	}
+	
 }
+
+each( { Height: "height", Width: "width" }, ( name, type ) =>{
+	each( {
+		padding: "inner" + name,
+		content: type,
+		"": "outer" + name
+	}, ( defaultExtra, funcName ) => {
+
+		Myjs.prototype[ funcName ] = function( margin, value ) {
+			const chainable = arguments.length && ( defaultExtra || typeof margin !== "boolean" ),
+				extra = defaultExtra || ( margin === true || value === true ? "margin" : "border" );
+			
+			let result
+			this.each((i, elem) => {
+				var doc;
+
+				if ( isWindow( elem ) ) {
+
+					// $( window ).outerWidth/Height return w/h including scrollbars (gh-1729)
+					result = funcName.indexOf( "outer" ) === 0 ?
+						elem[ "inner" + name ] :
+						elem.document.documentElement[ "client" + name ];
+						return false
+				}
+
+				// Get document width or height
+				if ( elem.nodeType === 9 ) {
+					doc = elem.documentElement;
+
+					// Either scroll[Width/Height] or offset[Width/Height] or client[Width/Height],
+					// whichever is greatest
+					result = Math.max(
+						elem.body[ "scroll" + name ], doc[ "scroll" + name ],
+						elem.body[ "offset" + name ], doc[ "offset" + name ],
+						doc[ "client" + name ]
+					);
+					
+					return false
+				}
+
+				if (value === undefined) {
+				  result = css( elem, type, extra )
+				  
+				  return false
+				}
+
+				
+					style( elem, type, value, extra );
+			} );
+			
+			return result === void 0 ? this : result
+		};
+	} );
+} );
+
+
+jQuery.each(
+	( "blur focus focusin focusout resize scroll click dblclick " +
+	"mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave " +
+	"change select submit keydown keypress keyup contextmenu" ).split( " " ),
+	function( _i, name ) {
+
+		// Handle event binding
+		Myjs.prototype[ name ] = function( fn ) {
+			return arguments.length > 0 ?
+				this.on( name, null, fn ) :
+				this.trigger( name );
+		};
+	}
+);
 
 function insertElements<TElement = HTMLElement>(
   elms: LikeArray<TElement>,

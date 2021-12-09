@@ -133,7 +133,7 @@ function off<N extends string, E extends Event, TElement = HTMLElement>(
         new Set(
           Array.from(weakCacheEvent.get(value)?.get(name)?.values()).filter(
             (v) => {
-              if (v.handler === callback && v.selector === selector) {
+              if (selector === "*" || (v.handler === callback && v.selector === selector) ){
                 value.removeEventListener(name, v.handler);
                 return false;
               }
