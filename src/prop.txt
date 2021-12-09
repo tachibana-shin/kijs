@@ -20,8 +20,6 @@ delay
 ---
 load
 ---
-scrollLeft
-scrollTop
 innerHeight
 height
 outerHeight
