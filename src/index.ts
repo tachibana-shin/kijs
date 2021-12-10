@@ -1,48 +1,49 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import createFragment from "./utils/createFragment";
-import { isArrayLike } from "./utils/is";
+import setData, { removeData } from "./static/data";
 import each from "./static/each";
+import { off, on, one } from "./static/event";
 import extend from "./static/extend";
 import ready from "./static/ready";
-import setData, { removeData } from "./static/data";  
-import { on, one, off } from "./static/event";
 import type LikeArray from "./types/LikeArray";
+import createFragment from "./utils/createFragment";
+import { isArrayLike } from "./utils/is";
 
-type TypeOrArray<T> = T | readonly T[];
+// eslint-disable-next-line functional/prefer-readonly-type
+type TypeOrArray<T> = T | T[];
 type Node = Element | Text | Comment | Document | DocumentFragment;
 type htmlString = string;
 type Selector = string;
-type ReturnMyjs<TElement> = Myjs<TElement> & {
+type ReturnMyjs<TElement extends Element> = Myjs<TElement> & {
   readonly [index: number]: TElement;
 };
-type ParamNewMyjs = Selector | TypeOrArray<Element> | htmlString | Node;
+type ParamNewMyjs<TElement> = Selector | TypeOrArray<TElement> | htmlString | Node;
 type CustomElementAdd = string | Element | Text;
 
 const rSelector = /[a-zA-Z_]|\.|#/;
-export default function myjs<TElement = HTMLElement>(
-  selector: ParamNewMyjs,
-  
-    prevObject?: myjs<TElement>,
-    context = document
+export default function myjs<TElement extends Element>(
+  selector: ParamNewMyjs<TElement>,
+
+  prevObject?: ReturnMyjs<TElement>,
+  context = document
 ): ReturnMyjs<TElement> {
-  return new Myjs<TElement>(selector) as any;
+  return new Myjs<TElement>(selector, prevObject, context) as any;
 }
 
-class Myjs<TElement = HTMLElement> {
+class Myjs<TElement extends Element> {
   // eslint-disable-next-line functional/prefer-readonly-type
   length = 0;
   get myjs(): true {
     return true;
   }
-  #prevObject: myjs<TElement> | void = undefined;
-  #context = document
+  readonly #prevObject: ReturnType<typeof myjs>| void = undefined;
+  readonly #context = document;
   constructor(
-    selector: Selector | TypeOrArray<Element> | htmlString | Node,
-    prevObject?: myjs<TElement>,
+    selector: Selector | TypeOrArray<TElement> | htmlString | Node,
+    prevObject?: ReturnType<typeof myjs>,
     context = document
   ) {
     this.#prevObject = prevObject;
-    this.#context = context
+    this.#context = context;
     if (selector instanceof Myjs) {
       return selector as any;
     }
@@ -79,20 +80,22 @@ class Myjs<TElement = HTMLElement> {
   each(
     callback: (this: TElement, index: number, element: TElement) => void | false
   ): this {
-    each(this, callback);
+    each(this as any, callback);
 
     return this;
   }
-  map<T = TElement>(
+  map<T = any>(
     callback: (this: TElement, index: number, element: TElement) => T
-  ): myjs<T> {
-    const elements: T[] = [];
+  ): ReturnType<typeof myjs> {
+    // eslint-disable-next-line functional/prefer-readonly-type
+    const elements: Element[] = [];
 
     this.each((index, value) => {
-      elements.push(callback.call(value, index, value));
+      // eslint-disable-next-line functional/immutable-data
+      elements.push(callback.call(value, index, value) as any);
     });
 
-    return myjs(elements, this);
+    return myjs(elements, this as any);
   }
   filter(
     callback: (
@@ -100,51 +103,51 @@ class Myjs<TElement = HTMLElement> {
       index: number,
       element: TElement
     ) => boolean | void
-  ): myjs<TElement> {
-    const elements = [];
+  ): ReturnType<typeof myjs> {
+    const elements: any = [];
     this.each((index, value) => {
-      if (!!callback.call(value, index, value)) {
+      if (callback.call(value, index, value)) {
         elements.push(value);
       }
     });
 
-    return myjs(elements, this);
+    return myjs(elements, this as any);
   }
-  toArray(): TElement[] {
-    return Array.from(this);
+  toArray(): readonly TElement[] {
+    return Array.from(this as any);
   }
   get(index: number): TElement | void {
-    return this[index < -1 ? this.length + index : index];
+    return (this as any)[index < -1 ? this.length + index : index];
   }
-  pushStack(elements: LikeArray<TElement>): myjs<TElement> {
+  pushStack(elements: LikeArray<TElement>): ReturnType<typeof myjs> {
     return myjs(Array.from(elements), this);
   }
-  slice(start: number, end?: number): myjs<TElement> {
+  slice(start: number, end?: number): ReturnType<typeof myjs> {
     return myjs(Array.prototype.slice.call(this, start, end), this);
   }
-  eq(index: number): myjs<TElement> {
+  eq(index: number): ReturnType<typeof myjs> {
     return myjs(this.get(index), this);
   }
-  first(): myjs<TElement> {
+  first(): ReturnType<typeof myjs> {
     return this.eq(0);
   }
-  last(): myjs<TElement> {
+  last(): ReturnType<typeof myjs> {
     return this.eq(-1);
   }
-  even(): myjs<TElement> {
+  even(): ReturnType<typeof myjs> {
     return this.filter((index) => index % 2 === 0);
   }
-  odd(): myjs<TElement> {
+  odd(): ReturnType<typeof myjs> {
     return this.filter((index) => index % 2 !== 0);
   }
-  end(): myjs<TElement> {
+  end(): ReturnType<typeof myjs> {
     return this.#prevObject || myjs();
   }
-  push = Array.prototype.push;
-  sort = Array.prototype.sort;
-  splice = Array.prototype.splice;
-  extend = extend as (...src: LikeArray<TElement>[]) => this;
-  find(selector: ParamNewMyjs): myjs<TElement> {
+  readonly push = Array.prototype.push;
+  readonly sort = Array.prototype.sort;
+  readonly splice = Array.prototype.splice;
+  readonly extend = extend as (...src: readonly LikeArray<TElement>[]) => this;
+  find(selector: ParamNewMyjs): ReturnType<typeof myjs> {
     if (typeof selector === "string") {
       const elements = new Set<TElement>();
       this.each((index, value) => {
@@ -163,10 +166,10 @@ class Myjs<TElement = HTMLElement> {
       }
     });
   }
-  not(selector: ParamNewMyjs): myjs<TElement>;
+  not(selector: ParamNewMyjs): ReturnType<typeof myjs>;
   not(
     filter: (this: TElement, index: number, element: TElement) => void | boolean
-  ): myjs<TElement>;
+  ): ReturnType<typeof myjs>;
   not(selector: any) {
     if (typeof selector === "function") {
       return this.filter((index, value) => {
@@ -180,10 +183,10 @@ class Myjs<TElement = HTMLElement> {
       return elements.includes(value) === false;
     });
   }
-  is(selector: ParamNewMyjs): myjs<TElement>;
+  is(selector: ParamNewMyjs): ReturnType<typeof myjs>;
   is(
     filter: (this: TElement, index: number, element: TElement) => void | boolean
-  ): myjs<TElement>;
+  ): ReturnType<typeof myjs>;
   is(selector: any) {
     if (typeof selector === "function") {
       return this.filter(selector);
@@ -201,8 +204,8 @@ class Myjs<TElement = HTMLElement> {
       return elements.includes(value);
     });
   }
-  init = myjs;
-  has(element: ParamNewMyjs): myjs<TElement> {
+  readonly init = myjs;
+  has(element: ParamNewMyjs): ReturnType<typeof myjs> {
     const elements = myjs(element);
 
     return this.filter((index, value) => {
@@ -214,7 +217,7 @@ class Myjs<TElement = HTMLElement> {
       }
     });
   }
-  closest(selector: ParamNewMyjs): myjs<TElement> {
+  closest(selector: ParamNewMyjs): ReturnType<typeof myjs> {
     if (typeof selector === "string") {
       const elements = new Set<TElement>();
 
@@ -255,13 +258,13 @@ class Myjs<TElement = HTMLElement> {
       selector instanceof Myjs ? selector[0] : selector
     );
   }
-  add(selector: ParamNewMyjs): myjs<TElement> {
+  add(selector: ParamNewMyjs): ReturnType<typeof myjs> {
     return this.pushStack(Array.from(myjs(selector)));
   }
-  addBack(selector: ParamNewMyjs): myjs<TElement> {
+  addBack(selector: ParamNewMyjs): ReturnType<typeof myjs> {
     return myjs(selector).pushStack(Array.from(this));
   }
-  parent(selector?: string): myjs<TElement> {
+  parent(selector?: string): ReturnType<typeof myjs> {
     const elements = new Set<TElement>();
 
     if (selector === void 0) {
@@ -283,7 +286,7 @@ class Myjs<TElement = HTMLElement> {
 
     return myjs(Array.from(elements.value()), this);
   }
-  parents(selector?: string): myjs<TElement> {
+  parents(selector?: string): ReturnType<typeof myjs> {
     const elements = new Set<TElement>();
 
     if (selector === void 0) {
@@ -307,7 +310,7 @@ class Myjs<TElement = HTMLElement> {
   parentsUntil(
     excludeSelector?: ParamNewMyjs,
     selector?: string
-  ): myjs<TElement> {
+  ): ReturnType<typeof myjs> {
     const exclude = myjs(selectorExclude).toArray();
     const elements = new Set<TElement>();
 
@@ -335,7 +338,7 @@ class Myjs<TElement = HTMLElement> {
 
     return myjs(Array.from(elements.values()));
   }
-  next(selector?: string): myjs<TElement> {
+  next(selector?: string): ReturnType<typeof myjs> {
     const elements = new Set<TElement>();
 
     if (selector === void 0) {
@@ -357,7 +360,7 @@ class Myjs<TElement = HTMLElement> {
 
     return myjs(Array.from(elements.values()), this);
   }
-  prev(selector?: string): myjs<TElement> {
+  prev(selector?: string): ReturnType<typeof myjs> {
     const elements = new Set<TElement>();
 
     if (selector === void 0) {
@@ -379,7 +382,7 @@ class Myjs<TElement = HTMLElement> {
 
     return myjs(Array.from(elements.values()), this);
   }
-  nextAll(selector?: string): myjs<TElement> {
+  nextAll(selector?: string): ReturnType<typeof myjs> {
     const elements = new Set<TElement>();
 
     if (selector === void 0) {
@@ -400,7 +403,7 @@ class Myjs<TElement = HTMLElement> {
 
     return myjs(Array.from(elements.values()), this);
   }
-  prevAll(selector?: string): myjs<TElement> {
+  prevAll(selector?: string): ReturnType<typeof myjs> {
     const elements = new Set<TElement>();
 
     if (selector === void 0) {
@@ -421,7 +424,10 @@ class Myjs<TElement = HTMLElement> {
 
     return myjs(Array.from(elements.values()), this);
   }
-  nextUntil(selectorExclude?: ParamNewMyjs, selector?: string): myjs<TElement> {
+  nextUntil(
+    selectorExclude?: ParamNewMyjs,
+    selector?: string
+  ): ReturnType<typeof myjs> {
     const exclude = myjs(selectorExclude).toArray();
     const elements = new Set<TElement>();
 
@@ -449,7 +455,10 @@ class Myjs<TElement = HTMLElement> {
 
     return myjs(Array.from(elements.values()), this);
   }
-  prevUntil(selectorExclude?: ParamNewMyjs, selector?: string): myjs<TElement> {
+  prevUntil(
+    selectorExclude?: ParamNewMyjs,
+    selector?: string
+  ): ReturnType<typeof myjs> {
     const exclude = myjs(selectorExclude).toArray();
     const elements = new Set<TElement>();
 
@@ -477,7 +486,7 @@ class Myjs<TElement = HTMLElement> {
 
     return myjs(Array.from(elements.values()), this);
   }
-  siblings(selector?: string): myjs<TElement> {
+  siblings(selector?: string): ReturnType<typeof myjs> {
     const elements = new Set<TElement>();
 
     if (selector === void 0) {
@@ -523,7 +532,7 @@ class Myjs<TElement = HTMLElement> {
 
     return myjs(Array.from(elements.values()), this);
   }
-  contents(): myjs<TElement> {
+  contents(): ReturnType<typeof myjs> {
     const elements = new Set<TElement>();
 
     this.each((index, value) => {
@@ -545,7 +554,7 @@ class Myjs<TElement = HTMLElement> {
 
     return myjs(Array.from(elements.values()), this);
   }
-  ready = ready;
+  readonly ready = ready;
   data<T extends object>(): T;
   data<R = any>(key: string | number | symbol): R;
   data<V = any>(key: string | number | symbol, value: V): this;
@@ -687,7 +696,7 @@ class Myjs<TElement = HTMLElement> {
     return this;
   }
   append(
-    ...contents: (
+    ...contents: readonly (
       | CustomElementAdd
       | LikeArray<CustomElementAdd>
       | ((
@@ -701,7 +710,7 @@ class Myjs<TElement = HTMLElement> {
     return this;
   }
   prepend(
-    ...contents: (
+    ...contents: readonly (
       | CustomElementAdd
       | LikeArray<CustomElementAdd>
       | ((
@@ -715,7 +724,7 @@ class Myjs<TElement = HTMLElement> {
     return this;
   }
   after(
-    ...contents: (
+    ...contents: readonly (
       | CustomElementAdd
       | LikeArray<CustomElementAdd>
       | ((
@@ -729,7 +738,7 @@ class Myjs<TElement = HTMLElement> {
     return this;
   }
   before(
-    ...contents: (
+    ...contents: readonly (
       | CustomElementAdd
       | LikeArray<CustomElementAdd>
       | ((
@@ -743,9 +752,9 @@ class Myjs<TElement = HTMLElement> {
     return this;
   }
   clone(
-    dataAndEvent: boolean = false,
+    dataAndEvent = false,
     deepDataAndEvent?: boolean = dataAndEvent
-  ): myjs<TElement> {
+  ): ReturnType<typeof myjs> {
     return this.map((index, elem) =>
       clone(elem, dataAndEvent, deepDataAndEvent)
     );
@@ -764,7 +773,7 @@ class Myjs<TElement = HTMLElement> {
     return this;
   }
   replaceWith(
-    ...contents: (
+    ...contents: readonly (
       | CustomElementAdd
       | LikeArray<CustomElementAdd>
       | ((
@@ -779,23 +788,23 @@ class Myjs<TElement = HTMLElement> {
 
     return this;
   }
-  appendTo(selector: ParamNewMyjs): myjs<TElement> {
+  appendTo(selector: ParamNewMyjs): ReturnType<typeof myjs> {
     return myjs(selector).append(this);
   }
-  prependTo(selector: ParamNewMyjs): myjs<TElement> {
+  prependTo(selector: ParamNewMyjs): ReturnType<typeof myjs> {
     return myjs(selector).prepend(this);
   }
-  insertAfter(selector: ParamNewMyjs): myjs<TElement> {
+  insertAfter(selector: ParamNewMyjs): ReturnType<typeof myjs> {
     return myjs(selector).after(this);
   }
-  insertBefore(selector: ParamNewMyjs): myjs<TElement> {
+  insertBefore(selector: ParamNewMyjs): ReturnType<typeof myjs> {
     return myjs(selector).before(this);
   }
-  replaceAll(selector: ParamNewMyjs): myjs<TElement> {
+  replaceAll(selector: ParamNewMyjs): ReturnType<typeof myjs> {
     return myjs(selector).replaceWith(this);
   }
   css<Prop extends keyof HTMLElement["prototype"]["style"]>(
-    props: Prop[]
+    props: readonly Prop[]
   ): Record<Prop, HTMLElement["prototype"]["style"][Prop]>;
   css<Prop extends keyof HTMLElement["prototype"]["style"]>(
     prop: Prop
@@ -805,7 +814,7 @@ class Myjs<TElement = HTMLElement> {
     value: HTMLElement["prototype"]["style"][Prop]
   ): this;
   css<Prop extends keyof HTMLElement["prototype"]["style"]>(css: {
-    [prop: Prop]: HTMLElement["prototype"]["style"][Prop];
+    readonly [prop: Prop]: HTMLElement["prototype"]["style"][Prop];
   }): this;
   css(prop: any, value?: any) {
     if (Array.isArray(prop)) {
@@ -846,389 +855,423 @@ class Myjs<TElement = HTMLElement> {
   attr(name: string): void | string;
   attr(name: string, value: string): this;
   attr(name: string, value?: string) {
-    if(value === void 0) {
-      return attr(this[0], name)
+    if (value === void 0) {
+      return attr(this[0], name);
     }
-    
+
     this.each((i, v) => {
-      attr(v, nsme, value)
-    })
-    
-    return this
+      attr(v, nsme, value);
+    });
+
+    return this;
   }
   removeAttr(name: string): this {
     this.each((i, v) => {
-      removeAttr(v, name)
-    })
-    
-    return this
+      removeAttr(v, name);
+    });
+
+    return this;
   }
   prop<T = any>(name: string): void | T;
   prop<T = any>(name: string, value: T): this;
   prop<T = any>(name: string, value?: T) {
-    if(value === void 0) {
-      return prop(this[0], name)
+    if (value === void 0) {
+      return prop(this[0], name);
     }
-    
+
     this.each((i, v) => {
-      prop(v, nsme, value)
-    })
-    
-    return this
+      prop(v, nsme, value);
+    });
+
+    return this;
   }
   removeProp(name: string): this {
     this.each((i, v) => {
-      removeProp(v, name)
-    })
-    
-return this
+      removeProp(v, name);
+    });
+
+    return this;
   }
-  addClass(classes: string | string[] | ((index: number, className: string) => string | string[])): this {
-    addClass(this, classes)
-    
-    return this
+  addClass(
+    classes:
+      | string
+      | readonly string[]
+      | ((index: number, className: string) => string | readonly string[])
+  ): this {
+    addClass(this, classes);
+
+    return this;
   }
-  removeClass(classes: string | string[] | ((index: number, className: string) => string | string[])): this {
-    removeClass(this, classes)
-    
-    return this
+  removeClass(
+    classes:
+      | string
+      | readonly string[]
+      | ((index: number, className: string) => string | readonly string[])
+  ): this {
+    removeClass(this, classes);
+
+    return this;
   }
-  toggleClass(classes: string | string[] | ((index: number, className: string) => string | string[])): this {
-    toggleClass(this, classes)
-    
-    return this
+  toggleClass(
+    classes:
+      | string
+      | readonly string[]
+      | ((index: number, className: string) => string | readonly string[])
+  ): this {
+    toggleClass(this, classes);
+
+    return this;
   }
   hasClass(clazz: string): boolean {
-    return hasClass(this, classes)
+    return hasClass(this, classes);
   }
-  value(): string | number | (string | number)[]
-  value(value: string | number | (string | number)[]): this
+  value(): string | number | readonly (string | number)[];
+  value(value: string | number | readonly (string | number)[]): this;
   value(val?: any) {
     if (val === void 0) {
-      return value(this)
+      return value(this);
     }
-    
-    value(this, val)
-    
-    return this
+
+    value(this, val);
+
+    return this;
   }
-  val = value
+  readonly val = value;
   trigger(name: string, data: any) {
     this.each((i, elem) => {
-      const event = new Event(name)
-      event.data = data
-      
+      const event = new Event(name);
+      event.data = data;
+
       if (elem[name] && data === void 0) {
-        elem[name]()
+        elem[name]();
       } else {
-        elem.dispatchEvent(event)
+        elem.dispatchEvent(event);
       }
-    })
-    
-    return this
+    });
+
+    return this;
   }
   triggerHandler(name: string, data: any): any {
-    let lastVal
-    weakCacheEvent.get(this[0])?.get(name).forEach(cb => {
-      const event = new Event(name)
-      event.data = data
-      lastVal = cb.handler.call(this[0], event)
-    })
-    
-    return lastVal
+    let lastVal;
+    weakCacheEvent
+      .get(this[0])
+      ?.get(name)
+      .forEach((cb) => {
+        const event = new Event(name);
+        event.data = data;
+        lastVal = cb.handler.call(this[0], event);
+      });
+
+    return lastVal;
   }
   serialize(): string {
-    return toParam(this.serializeArray())
+    return toParam(this.serializeArray());
   }
-	serializeArray(): {
-	  name: string;
-	  value: string;
-	}[] {
-		return this.map( (i, elem) => {
-			var elements = prop( elem, "elements" );
-			return elements ? Array.from( elements ) : this;
-		} )
-		.filter( function(i, elem) {
-			var type = elem.type;
+  serializeArray(): readonly {
+    readonly name: string;
+    readonly value: string;
+  }[] {
+    return this.map((i, elem) => {
+      const elements = prop(elem, "elements");
+      return elements ? Array.from(elements) : this;
+    })
+      .filter(function (i, elem) {
+        const type = elem.type;
 
-			return this.name && !myjs(elem).is( ":disabled" ) &&
-				rsubmittable.test( elem.nodeName ) && !rsubmitterTypes.test( type ) &&
-				( elem.checked || !rcheckableType.test( type ) );
-		} ).map( function( _i, elem ) {
-			var val = value(elem)
+        return (
+          this.name &&
+          !myjs(elem).is(":disabled") &&
+          rsubmittable.test(elem.nodeName) &&
+          !rsubmitterTypes.test(type) &&
+          (elem.checked || !rcheckableType.test(type))
+        );
+      })
+      .map(function (_i, elem) {
+        const val = value(elem);
 
-			if ( val == null ) {
-				return null;
-			}
+        if (val == null) {
+          return null;
+        }
 
-			if ( Array.isArray( val ) ) {
-				return val.map(( val ) => {
-					return {
-					  name: elem.name,
-					  value: val.replace( rCRLF, "\r\n" )
-					};
-				} );
-			}
+        if (Array.isArray(val)) {
+          return val.map((val) => {
+            return {
+              name: elem.name,
+              value: val.replace(rCRLF, "\r\n"),
+            };
+          });
+        }
 
-			return { name: elem.name, value: val.replace( rCRLF, "\r\n" ) };
-		} ).get();
-	}
-	
-	wrapAll( html: ParamNewMyjs ): this {
-		var wrap;
+        return { name: elem.name, value: val.replace(rCRLF, "\r\n") };
+      })
+      .get();
+  }
 
-		if ( this[ 0 ] ) {
-			if ( isFunction( html ) ) {
-				html = html.call( this[ 0 ] );
-			}
+  wrapAll(html: ParamNewMyjs): this {
+    let wrap;
 
-			// The elements to wrap the target around
-			wrap = myjs( html, this, this[ 0 ].ownerDocument ).eq( 0 ).clone( true );
+    if (this[0]) {
+      if (isFunction(html)) {
+        html = html.call(this[0]);
+      }
 
-			if ( this[ 0 ].parentNode ) {
-				wrap.insertBefore( this[ 0 ] );
-			}
+      // The elements to wrap the target around
+      wrap = myjs(html, this, this[0].ownerDocument).eq(0).clone(true);
 
-			wrap.map((i, elem) => {
-	
+      if (this[0].parentNode) {
+        wrap.insertBefore(this[0]);
+      }
 
-				while ( elem.firstElementChild ) {
-					elem = elem.firstElementChild;
-				}
+      wrap
+        .map((i, elem) => {
+          while (elem.firstElementChild) {
+            elem = elem.firstElementChild;
+          }
 
-				return elem;
-			} ).append( this );
-		}
-
-		return this;
-	}
-
-	wrapInner( html: ParamNewMyjs ): this {
-		if ( isFunction( html ) ) {
-			this.each( function( i, e ) {
-				myjs(e ).wrapInner( html.call( this, i ) );
-			} );
-			
-			return this
-		}
-
-		 this.each( function(i, e) {
-			var self = myjs( e ),
-				contents = self.contents();
-
-			if ( contents.length ) {
-				contents.wrapAll( html );
-
-			} else {
-				self.append( html );
-			}
-		} );
-		
-		return this
-	}
-
-	wrap( html: ParamNewMyjs | ((index: number, element: TElement) => ParamNewMyjs) ): this {
-		var htmlIsFunction = isFunction( html );
-
-		this.each( function( i ) {
-			myjs( this ).wrapAll( htmlIsFunction ? html.call( this, i ) : html );
-		} );
-		
-		return this
-	}
-
-	unwrap( selector: string ): this {
-		this.parent( selector ).not( "body" ).each((i, e) => {
-			myjs( e ).replaceWith( this.childNodes );
-		} );
-		return this;
-	}
-	
-	offset(options: {
-	  top: number,
-	  left: number
-	}): this
-	offset(): {
-	  top: number
-	  left: number
-	}
-	offset( options?: any) {
-    if (options === undefined) {
-      return offset(this)
+          return elem;
+        })
+        .append(this);
     }
-    
-    offset(this, options)
-    return this
-	}
 
-	position(): ReturnType<typeof position>{
-	  return position(this[0])
-	}
+    return this;
+  }
 
-	offsetParent() : HTMLElement["prototype"]["offsetParent"] {
-		return this.map( function() {
-			var offsetParent = this.offsetParent;
+  wrapInner(html: ParamNewMyjs): this {
+    if (isFunction(html)) {
+      this.each(function (i, e) {
+        myjs(e).wrapInner(html.call(this, i));
+      });
 
-			while ( offsetParent && jQuery.css( offsetParent, "position" ) === "static" ) {
-				offsetParent = offsetParent.offsetParent;
-			}
+      return this;
+    }
 
-			return offsetParent || documentElement;
-		} );
-	}
+    this.each(function (i, e) {
+      const self = myjs(e),
+        contents = self.contents();
+
+      if (contents.length) {
+        contents.wrapAll(html);
+      } else {
+        self.append(html);
+      }
+    });
+
+    return this;
+  }
+
+  wrap(
+    html: ParamNewMyjs | ((index: number, element: TElement) => ParamNewMyjs)
+  ): this {
+    const htmlIsFunction = isFunction(html);
+
+    this.each(function (i) {
+      myjs(this).wrapAll(htmlIsFunction ? html.call(this, i) : html);
+    });
+
+    return this;
+  }
+
+  unwrap(selector: string): this {
+    this.parent(selector)
+      .not("body")
+      .each((i, e) => {
+        myjs(e).replaceWith(this.childNodes);
+      });
+    return this;
+  }
+
+  offset(options: { readonly top: number; readonly left: number }): this;
+  offset(): {
+    readonly top: number;
+    readonly left: number;
+  };
+  offset(options?: any) {
+    if (options === undefined) {
+      return offset(this);
+    }
+
+    offset(this, options);
+    return this;
+  }
+
+  position(): ReturnType<typeof position> {
+    return position(this[0]);
+  }
+
+  offsetParent(): HTMLElement["prototype"]["offsetParent"] {
+    return this.map(function () {
+      let offsetParent = this.offsetParent;
+
+      while (
+        offsetParent &&
+        jQuery.css(offsetParent, "position") === "static"
+      ) {
+        offsetParent = offsetParent.offsetParent;
+      }
+
+      return offsetParent || documentElement;
+    });
+  }
 
   scrollLeft(): number;
   scrollLeft(value: number): this;
   scrollLeft(value?: number) {
     if (value === void 0) {
-      return pageOffset(this, "scrollLeft")
+      return pageOffset(this, "scrollLeft");
     }
-    
-    pageOffset(this, "scrollLeft", value)
+
+    pageOffset(this, "scrollLeft", value);
   }
-	
+
   scrollTop(): number;
   scrollTop(value: number): this;
   scrollTop(value?: number) {
     if (value === void 0) {
-      return pageOffset(this, "scrollTop")
+      return pageOffset(this, "scrollTop");
     }
-    
-    pageOffset(this, "scrollTop", value)
+
+    pageOffset(this, "scrollTop", value);
   }
-	
-	// space
-	innerWidth(value: number): this;
-	innerWidth(): number
-	width(value: number): this;
-	width(): number
-	outerWidth(value: number): this;
-	outerWidth(): number
-	innerHeight(value: number): this;
-	innerHeight(): number
-	height(value: number): this;
-	height(): number
-	outerHeight(value: number): this;
-	outerheight(): number
-	bind< N extends string, E extends Event > (
-	  name: N,
-	  callback: (this: TElement, event: E) => void
-	): this {
-		return this.on( types, null, fn );
-	}
-	unbind< N extends string, E extends Event > (
-	  name: N,
-	  callback: (this: TElement, event: E) => void
-	): this {
-		return this.off( name, null, callback );
-	}
 
-	delegate< N extends string, E extends Event > (
-	  selector: string,
-	  name: N,
-	  callback: (this: TElement, event: E) => void
-	): this{
-		return this.on( name, selector, callback );
-	}
-	undelegate< N extends string, E extends Event > (
-	  selector: string,
-	  name: N,
-	  callback: (this: TElement, event: E) => void
-	): this {
+  // space
+  innerWidth(value: number): this;
+  innerWidth(): number;
+  width(value: number): this;
+  width(): number;
+  outerWidth(value: number): this;
+  outerWidth(): number;
+  innerHeight(value: number): this;
+  innerHeight(): number;
+  height(value: number): this;
+  height(): number;
+  outerHeight(value: number): this;
+  outerheight(): number;
+  bind<N extends string, E extends Event>(
+    name: N,
+    callback: (this: TElement, event: E) => void
+  ): this {
+    return this.on(types, null, fn);
+  }
+  unbind<N extends string, E extends Event>(
+    name: N,
+    callback: (this: TElement, event: E) => void
+  ): this {
+    return this.off(name, null, callback);
+  }
 
-		// ( namespace ) or ( selector, types [, fn] )
-		return arguments.length === 1 ?
-			this.off( selector, "*" ) :
-			this.off( name, selector || "*", callback );
-	}
-	
-	mouseenter(cb: (event: MouseEvent) => void) : this {
-	  return this.on("mouseover", cb)
-	}
-	mouseleave(cb: (event: MouseEvent) => void): this {
-	  return this.on("mouseout", cb)
-	}
+  delegate<N extends string, E extends Event>(
+    selector: string,
+    name: N,
+    callback: (this: TElement, event: E) => void
+  ): this {
+    return this.on(name, selector, callback);
+  }
+  undelegate<N extends string, E extends Event>(
+    selector: string,
+    name: N,
+    callback: (this: TElement, event: E) => void
+  ): this {
+    // ( namespace ) or ( selector, types [, fn] )
+    return arguments.length === 1
+      ? this.off(selector, "*")
+      : this.off(name, selector || "*", callback);
+  }
 
-	hover( fnOver: (event: MouseEvent) => void, fnOut: (event: MouseEvent) => void ) {
-		return this.mouseenter( fnOver ).mouseleave( fnOut || fnOver );
-	}
-	
+  mouseenter(cb: (event: MouseEvent) => void): this {
+    return this.on("mouseover", cb);
+  }
+  mouseleave(cb: (event: MouseEvent) => void): this {
+    return this.on("mouseout", cb);
+  }
+
+  hover(
+    fnOver: (event: MouseEvent) => void,
+    fnOut: (event: MouseEvent) => void
+  ) {
+    return this.mouseenter(fnOver).mouseleave(fnOut || fnOver);
+  }
 }
 
-each( { Height: "height", Width: "width" }, ( name, type ) =>{
-	each( {
-		padding: "inner" + name,
-		content: type,
-		"": "outer" + name
-	}, ( defaultExtra, funcName ) => {
+each({ Height: "height", Width: "width" }, (name, type) => {
+  each(
+    {
+      padding: "inner" + name,
+      content: type,
+      "": "outer" + name,
+    },
+    (defaultExtra, funcName) => {
+      Myjs.prototype[funcName] = function (margin, value) {
+        const chainable =
+            arguments.length && (defaultExtra || typeof margin !== "boolean"),
+          extra =
+            defaultExtra ||
+            (margin === true || value === true ? "margin" : "border");
 
-		Myjs.prototype[ funcName ] = function( margin, value ) {
-			const chainable = arguments.length && ( defaultExtra || typeof margin !== "boolean" ),
-				extra = defaultExtra || ( margin === true || value === true ? "margin" : "border" );
-			
-			let result
-			this.each((i, elem) => {
-				var doc;
+        let result;
+        this.each((i, elem) => {
+          let doc;
 
-				if ( isWindow( elem ) ) {
+          if (isWindow(elem)) {
+            // $( window ).outerWidth/Height return w/h including scrollbars (gh-1729)
+            result =
+              funcName.indexOf("outer") === 0
+                ? elem["inner" + name]
+                : elem.document.documentElement["client" + name];
+            return false;
+          }
 
-					// $( window ).outerWidth/Height return w/h including scrollbars (gh-1729)
-					result = funcName.indexOf( "outer" ) === 0 ?
-						elem[ "inner" + name ] :
-						elem.document.documentElement[ "client" + name ];
-						return false
-				}
+          // Get document width or height
+          if (elem.nodeType === 9) {
+            doc = elem.documentElement;
 
-				// Get document width or height
-				if ( elem.nodeType === 9 ) {
-					doc = elem.documentElement;
+            // Either scroll[Width/Height] or offset[Width/Height] or client[Width/Height],
+            // whichever is greatest
+            result = Math.max(
+              elem.body["scroll" + name],
+              doc["scroll" + name],
+              elem.body["offset" + name],
+              doc["offset" + name],
+              doc["client" + name]
+            );
 
-					// Either scroll[Width/Height] or offset[Width/Height] or client[Width/Height],
-					// whichever is greatest
-					result = Math.max(
-						elem.body[ "scroll" + name ], doc[ "scroll" + name ],
-						elem.body[ "offset" + name ], doc[ "offset" + name ],
-						doc[ "client" + name ]
-					);
-					
-					return false
-				}
+            return false;
+          }
 
-				if (value === undefined) {
-				  result = css( elem, type, extra )
-				  
-				  return false
-				}
+          if (value === undefined) {
+            result = css(elem, type, extra);
 
-				
-					style( elem, type, value, extra );
-			} );
-			
-			return result === void 0 ? this : result
-		};
-	} );
-} );
+            return false;
+          }
 
+          style(elem, type, value, extra);
+        });
+
+        return result === void 0 ? this : result;
+      };
+    }
+  );
+});
 
 jQuery.each(
-	( "blur focus focusin focusout resize scroll click dblclick " +
-	"mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave " +
-	"change select submit keydown keypress keyup contextmenu" ).split( " " ),
-	function( _i, name ) {
-
-		// Handle event binding
-		Myjs.prototype[ name ] = function( fn ) {
-			return arguments.length > 0 ?
-				this.on( name, null, fn ) :
-				this.trigger( name );
-		};
-	}
+  (
+    "blur focus focusin focusout resize scroll click dblclick " +
+    "mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave " +
+    "change select submit keydown keypress keyup contextmenu"
+  ).split(" "),
+  function (_i, name) {
+    // Handle event binding
+    Myjs.prototype[name] = function (fn) {
+      return arguments.length > 0
+        ? this.on(name, null, fn)
+        : this.trigger(name);
+    };
+  }
 );
 
-function insertElements<TElement = HTMLElement>(
+function insertElements<TElement extends Element>(
   elms: LikeArray<TElement>,
   action: (item: TElement, child: any) => void,
-  ...contents: (
+  ...contents: readonly (
     | CustomElementAdd
     | LikeArray<CustomElementAdd>
     | ((

@@ -1,16 +1,22 @@
+import LikeArray from "../types/LikeArray";
+
 export default function getText<TElement = HTMLElement>(
   elem: LikeArray<TElement>
 ): string {
+  // eslint-disable-next-line functional/no-let
   let ret = "";
   const nodeType = elem.nodeType;
 
   if (!nodeType) {
+    // eslint-disable-next-line functional/no-let
     let node,
       i = 0;
     // If no nodeType, this is expected to be an array
+    // eslint-disable-next-line functional/no-loop-statement
     while ((node = elem[i++])) {
       // Do not traverse comment nodes
-      ret += getText(node);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      ret += getText(node as any);
     }
   } else if (nodeType === 1 || nodeType === 9 || nodeType === 11) {
     // Use textContent for elements
@@ -19,6 +25,7 @@ export default function getText<TElement = HTMLElement>(
       return elem.textContent;
     } else {
       // Traverse its children
+      // eslint-disable-next-line functional/no-loop-statement
       for (elem = elem.firstChild; elem; elem = elem.nextSibling) {
         ret += getText(elem);
       }

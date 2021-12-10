@@ -1,10 +1,10 @@
-
 type LikeArray<T> = {
-  [key: string]: any
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  readonly [key: string]: any;
 } & {
-  [index: number]: T
+  readonly [index: number]: T;
 } & {
-  length: number
-}
+  readonly length: number;
+};
 
-export default LikeArray
+export default LikeArray;

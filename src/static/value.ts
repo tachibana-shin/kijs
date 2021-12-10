@@ -1,19 +1,26 @@
+/* eslint-disable @typescript-eslint/no-non-null-assertion */
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import LikeArray from "../types/LikeArray";
+import { isFunction } from "../utils/is";
+
+import { stripAndCollapse } from "./className";
+import each from "./each";
+import text from "./text";
+
 const rreturn = /\r/g;
 
-
-const valHooks = {
+const valHooks: any = {
   option: {
-    get(elem) {
-
+    get(elem: HTMLElement) {
       const val = elem.getAttribute("value");
-      return val != null ?
-        val : stripAndCollapse(text(elem));
-    }
+      return val != null ? val : stripAndCollapse(text([elem]));
+    },
   },
   select: {
-    get: function(elem) {
-      var value, option, i,
-        options = elem.options,
+    get(elem: HTMLSelectElement): any {
+      // eslint-disable-next-line functional/no-let
+      let val, option, i;
+      const options = elem.options,
         index = elem.selectedIndex,
         one = elem.type === "select-one",
         values = one ? null : [],
@@ -21,104 +28,95 @@ const valHooks = {
 
       if (index < 0) {
         i = max;
-
       } else {
         i = one ? index : 0;
       }
 
       // Loop through all the selected options
+      // eslint-disable-next-line functional/no-loop-statement
       for (; i < max; i++) {
         option = options[i];
 
         // Support: IE <=9 only
         // IE8-9 doesn't update selected after form reset (#2551)
-        if ((option.selected || i === index) &&
-
+        if (
+          (option.selected || i === index) &&
           // Don't return options that are disabled or in a disabled optgroup
           !option.disabled &&
-          (!option.parentNode.disabled ||
-            !nodeName(option.parentNode, "optgroup"))) {
-
+          (!(option.parentNode as any)!.disabled ||
+            !(option.parentNode!.nodeName.toLowerCase(), "optgroup"))
+        ) {
           // Get the specific value for the option
-          value = jQuery(option).val();
+          val = $$value(option as any);
 
           // We don't need an array for one selects
           if (one) {
-            return value;
+            return val;
           }
 
           // Multi-Selects return an array
-          values.push(value);
+          (values as any)!.push(val);
         }
       }
 
       return values;
     },
 
-    set: function(elem, value) {
-      var optionSet, option,
-        options = elem.options,
-        values = jQuery.makeArray(value),
+    set(elem: HTMLSelectElement, value: any) {
+      const options = elem.options,
+        values = Array.from(value);
+      // eslint-disable-next-line functional/no-let
+      let optionSet,
+        option,
         i = options.length;
 
+      // eslint-disable-next-line functional/no-loop-statement
       while (i--) {
         option = options[i];
 
-        /* eslint-disable no-cond-assign */
-
-        if (option.selected =
-          jQuery.inArray(jQuery.valHooks.option.get(option), values) > -1
+        if (
+          // eslint-disable-next-line functional/immutable-data
+          (option.selected = values.includes(
+            option.value || option.textContent
+          ))
         ) {
           optionSet = true;
         }
-
-        /* eslint-enable no-cond-assign */
       }
 
       // Force browsers to behave consistently when non-matching value is set
       if (!optionSet) {
+        // eslint-disable-next-line functional/immutable-data
         elem.selectedIndex = -1;
       }
       return values;
-    }
-  }
-}
+    },
+  },
+};
 
+function $$value<TElement extends HTMLElement>(
+  elems: LikeArray<TElement>,
+  val?: any
+) {
+  // eslint-disable-next-line functional/no-let
+  let hooks, ret, valueIsFunction: boolean;
+  const elem = elems[0];
 
-// Radios and checkboxes getter/setter
-each(["radio", "checkbox"], function(i, v) {
-  valHooks[v] = {
-    set(elem, value) {
-      if (Array.isArray(value)) {
-        return (elem.checked = jQuery.inArray(jQuery(elem).val(), value) > -1);
-      }
-    }
-  };
-  if (!support.checkOn) {
-    valHooks[v].get = function(elem) {
-      return elem.getAttribute("value") === null ? "on" : elem.value;
-    };
-  }
-});
-
-
-function $$value < TElement = HTMLElement > (elems: LikeArray < TElement > , value) {
-  var hooks, ret, valueIsFunction,
-    elem = elems[0];
-
+  // eslint-disable-next-line functional/functional-parameters
   if (!arguments.length) {
     if (elem) {
-      hooks = valHooks[elem.type] ||
-        valHooks[elem.nodeName.toLowerCase()];
+      hooks =
+        valHooks[(elem as any).type] || valHooks[elem.nodeName.toLowerCase()];
 
-      if (hooks &&
+      if (
+        hooks &&
         "get" in hooks &&
         (ret = hooks.get(elem, "value")) !== undefined
       ) {
         return ret;
       }
 
-      ret = elem.value;
+      ret = (elem as any).value;
 
       // Handle most common string cases
       if (typeof ret === "string") {
@@ -132,41 +130,47 @@ function $$value < TElement = HTMLElement > (elems: LikeArray < TElement > , val
     return;
   }
 
-  valueIsFunction = isFunction(value);
+  // eslint-disable-next-line prefer-const
+  valueIsFunction = isFunction(val);
 
   each(elems, (i, elem) => {
-    var val;
+    // eslint-disable-next-line functional/no-let
+    let $val;
 
     if (elem.nodeType !== 1) {
       return;
     }
 
     if (valueIsFunction) {
-      val = value.call(elem, i, $$value([elem]));
+      $val = val.call(elem, i, $$value([elem]));
     } else {
-      val = value;
+      $val = val;
     }
 
     // Treat null/undefined as ""; convert numbers to string
-    if (val == null) {
-      val = "";
-
-    } else if (typeof val === "number") {
-      val += "";
-
-    } else if (Array.isArray(val)) {
-      val = val.map((value) => {
+    if ($val == null) {
+      $val = "";
+    } else if (typeof $val === "number") {
+      $val += "" as unknown as any;
+    } else if (Array.isArray($val)) {
+      $val = $val.map((value) => {
         return value == null ? "" : value + "";
       });
     }
 
-    hooks = valHooks[this.type] || valHooks[this.nodeName.toLowerCase()];
+    hooks =
+      valHooks[(elem as any).type] || valHooks[elem.nodeName.toLowerCase()];
 
     // If set returns undefined, fall back to normal setting
-    if (!hooks || !("set" in hooks) || hooks.set(this, val, "value") === undefined) {
-      elem.value = val;
+    if (
+      !hooks ||
+      !("set" in hooks) ||
+      hooks.set(elem, $val, "value") === undefined
+    ) {
+      // eslint-disable-next-line functional/immutable-data
+      (elem as any).value = $val;
     }
   });
 }
 
-export default value
+export default $$value;

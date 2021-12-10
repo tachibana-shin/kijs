@@ -1,8 +1,9 @@
+/* eslint-disable functional/no-let */
 let isReady = false;
 let readyWait = 1;
 
 let startRunStack: () => void;
-const queue = new Promise((resolve) => {
+const queue = new Promise<void>((resolve) => {
   startRunStack = resolve;
 });
 
@@ -14,7 +15,7 @@ function completed() {
 
 if (
   document.readyState === "complete" ||
-  (document.readyState !== "loading" && !document.documentElement.doScroll)
+  (document.readyState !== "loading" && !document.documentElement.scroll)
 ) {
   setTimeout(ready);
 } else {
@@ -27,6 +28,7 @@ function ready(wait: boolean): void;
 
 function ready(callback?: () => void | Promise<void>): Promise<void>;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function ready(wait?: any) {
   if (typeof wait === "function") {
     return queue.then(() => {
@@ -34,6 +36,7 @@ function ready(wait?: any) {
         return wait();
       } catch (e) {
         setTimeout(() => {
+          // eslint-disable-next-line functional/no-throw-statement
           throw e;
         });
       }
@@ -55,7 +58,7 @@ function ready(wait?: any) {
   return queue;
 }
 
-export function holdReady(wait) {
+export function holdReady(wait: boolean): void {
   if (wait) {
     readyWait++;
   } else {

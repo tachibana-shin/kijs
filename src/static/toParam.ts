@@ -1,24 +1,33 @@
-export default function toParam(data: {
-  name: string
-  value: string | number | (() => string | number)
-} [] | {
-  [key: string]: string | number | (() => string | number)
-}): string {
-  const dstr = [],
-    isArray = Array.isArray(str);
+import { isFunction } from "../utils/is";
 
-  each(data, (key, val) => {
+import each from "./each";
+
+export default function toParam(
+  data:
+    | readonly {
+        readonly name: string;
+        readonly value: string | number | (() => string | number);
+      }[]
+    | {
+        readonly [key: string]: string | number | (() => string | number);
+      }
+): string {
+  // eslint-disable-next-line functional/prefer-readonly-type
+  const dstr: string[] = [],
+    isArray = Array.isArray(dstr);
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  each(data as any, (key, val) => {
     val = isFunction(val) ? val() : val;
 
     if (isArray) {
-      key = val.name
-      val = val.value
+      key = val.name;
+      val = val.value;
     }
 
+    // eslint-disable-next-line functional/immutable-data
     dstr.push(
-      encodeURIComponent(key) +
-      "=" +
-      encodeURIComponent(val == null ? "" : val)
+      encodeURIComponent(key) + "=" + encodeURIComponent(val == null ? "" : val)
     );
   });
 
