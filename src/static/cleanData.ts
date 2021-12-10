@@ -1,9 +1,10 @@
-import each from "./each";
-import { removeData } from "./data";
-import { off } from "./event";
 import type LikeArray from "../types/LikeArray";
 
-export default function cleanData<TElement = HTMLElement>(
+import { removeData } from "./data";
+import each from "./each";
+import { off } from "./event";
+
+export default function cleanData<TElement extends HTMLElement>(
   elems: LikeArray<TElement>
 ): void {
   each(elems, (index, value) => {

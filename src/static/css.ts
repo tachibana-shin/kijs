@@ -6,7 +6,7 @@ const pnum = /[+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|)/.source;
 const rcssNum = new RegExp("^(?:([+-])=|)(" + pnum + ")([a-z%]*)$", "i");
 const rnumnonpx = new RegExp("^(" + pnum + ")(?!px)[a-z%]+$", "i");
 
-function curCSS<TElement = HTMLElement>(
+export function curCSS<TElement = HTMLElement>(
   elem: TElement,
   name: string,
   computed?: Record<string, any>

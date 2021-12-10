@@ -1,11 +1,14 @@
-let pixelPositionVal,
-  boxSizingReliableVal,
-  scrollboxSizeVal,
-  pixelBoxStylesVal,
-  reliableTrDimensionsVal,
-  reliableMarginLeftVal;
-const container = document.createElement("div"),
-  div = document.createElement("div");
+/* eslint-disable functional/immutable-data */
+// eslint-disable-next-line functional/no-let
+let pixelPositionVal: boolean,
+  boxSizingReliableVal: boolean,
+  scrollboxSizeVal: boolean,
+  pixelBoxStylesVal: boolean,
+  reliableTrDimensionsVal: boolean | null,
+  reliableMarginLeftVal: boolean;
+const container = document.createElement("div");
+// eslint-disable-next-line functional/no-let
+let div: HTMLDivElement | void = document.createElement("div");
 
 function computeStyleTests() {
   // This is a singleton, we need to execute it only once
@@ -20,7 +23,7 @@ function computeStyleTests() {
     "position:relative;display:block;box-sizing:border-box;overflow:scroll;" +
     "margin:auto;border:1px;padding:1px;" +
     "width:60%;top:1%";
-  documentElement.appendChild(container).appendChild(div);
+  document.documentElement.appendChild(container).appendChild(div);
 
   const divStyle = window.getComputedStyle(div);
   pixelPositionVal = divStyle.top !== "1%";
@@ -42,36 +45,38 @@ function computeStyleTests() {
   // Support: Chrome <=64
   // Don't get tricked when zoom affects offsetWidth (gh-4029)
   div.style.position = "absolute";
-  scrollboxSizeVal = roundPixelMeasures(div.offsetWidth / 3) === 12;
+  scrollboxSizeVal = roundPixelMeasures(div.offsetWidth / 3 + "") === 12;
 
-  documentElement.removeChild(container);
+  document.documentElement.removeChild(container);
 
   // Nullify the div so it wouldn't be stored in the memory and
   // it will also be a sign that checks already performed
-  div = null;
+  div = void 0;
 }
 
-function roundPixelMeasures(measure) {
+function roundPixelMeasures(measure: string) {
   return Math.round(parseFloat(measure));
 }
 
 // Support: IE <=9 - 11 only
 // Style of cloned element affects source element cloned (#8908)
 div.style.backgroundClip = "content-box";
-div.cloneNode(true).style.backgroundClip = "";
 
-const input = document.createElement("input"),
+(div.cloneNode(true) as HTMLElement).style.backgroundClip = "";
+// eslint-disable-next-line functional/no-let
+let input = document.createElement("input"),
+  // eslint-disable-next-line prefer-const
   select = document.createElement("select"),
+  // eslint-disable-next-line prefer-const
   opt = select.appendChild(document.createElement("option"));
 
 input.type = "checkbox";
 
-const checkOn = input.value !== ""
+const checkOn = input.value !== "";
 
 input = document.createElement("input");
 input.value = "t";
 input.type = "radio";
-
 
 export default {
   checkOn,
@@ -109,7 +114,8 @@ export default {
   // Only Firefox includes border widths
   // in computed dimensions. (gh-4529)
   reliableTrDimensions() {
-    var table, tr, trChild, trStyle;
+    // eslint-disable-next-line functional/no-let
+    let table, tr, trChild, trStyle;
     if (reliableTrDimensionsVal == null) {
       table = document.createElement("table");
       tr = document.createElement("tr");
@@ -133,16 +139,19 @@ export default {
       // gets around this issue.
       trChild.style.display = "block";
 
-      documentElement.appendChild(table).appendChild(tr).appendChild(trChild);
+      document.documentElement
+        .appendChild(table)
+        .appendChild(tr)
+        .appendChild(trChild);
 
       trStyle = window.getComputedStyle(tr);
       reliableTrDimensionsVal =
         parseInt(trStyle.height, 10) +
-        parseInt(trStyle.borderTopWidth, 10) +
-        parseInt(trStyle.borderBottomWidth, 10) ===
+          parseInt(trStyle.borderTopWidth, 10) +
+          parseInt(trStyle.borderBottomWidth, 10) ===
         tr.offsetHeight;
 
-      documentElement.removeChild(table);
+      document.documentElement.removeChild(table);
     }
     return reliableTrDimensionsVal;
   },

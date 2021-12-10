@@ -1,23 +1,50 @@
-type Offset = {
-  top: number
-  left: number
-}
+/* eslint-disable functional/functional-parameters */
 
-function setOffset < TElement = HTMLElement > (elem: TElement, options: Offset | ((index: number, currentOffset: Offset) => Offset), i = 0) {
-  var curPosition, curLeft, curCSSTop, curTop, curOffset, curCSSLeft, calculatePosition,
+/* eslint-disable functional/immutable-data */
+import LikeArray from "../types/LikeArray";
+import { isFunction } from "../utils/is";
+
+import css from "./css";
+import each from "./each";
+import $$position from "./position";
+
+export type Offset = {
+  readonly top: number;
+  readonly left: number;
+};
+
+function setOffset<TElement extends HTMLElement>(
+  elem: TElement,
+  options: Offset | ((index: number, currentOffset: Offset) => Offset),
+  i = 0
+) {
+  // eslint-disable-next-line functional/no-let
+  let curPosition,
+    curLeft,
+    curCSSTop,
+    curTop,
+    curOffset,
+    curCSSLeft,
+    calculatePosition,
+    // eslint-disable-next-line prefer-const
     position = css(elem, "position"),
-
-    props = {};
+    // eslint-disable-next-line prefer-const, @typescript-eslint/no-explicit-any
+    props = {} as any;
 
   // Set position first, in-case top/left are set even on static elem
   if (position === "static") {
     elem.style.position = "relative";
   }
 
+  // eslint-disable-next-line prefer-const
   curOffset = offset(elem);
-  curCSSTop = css(elem, "top");
-  curCSSLeft = css(elem, "left");
-  calculatePosition = (position === "absolute" || position === "fixed") &&
+  // eslint-disable-next-line prefer-const
+  curCSSTop = css(elem, "top") as string;
+  // eslint-disable-next-line prefer-const
+  curCSSLeft = css(elem, "left") as string;
+  // eslint-disable-next-line prefer-const
+  calculatePosition =
+    (position === "absolute" || position === "fixed") &&
     (curCSSTop + curCSSLeft).indexOf("auto") > -1;
 
   // Need to be able to calculate position if either
@@ -26,52 +53,48 @@ function setOffset < TElement = HTMLElement > (elem: TElement, options: Offset |
     curPosition = $$position(elem);
     curTop = curPosition.top;
     curLeft = curPosition.left;
-
   } else {
     curTop = parseFloat(curCSSTop) || 0;
     curLeft = parseFloat(curCSSLeft) || 0;
   }
 
   if (isFunction(options)) {
-
     // Use jQuery.extend here to allow modification of coordinates argument (gh-1848)
     options = options.call(elem, i, curOffset);
   }
 
   if (options.top != null) {
-    props.top = (options.top - curOffset.top) + curTop;
+    props.top = options.top - curOffset.top + curTop;
   }
   if (options.left != null) {
-    props.left = (options.left - curOffset.left) + curLeft;
+    props.left = options.left - curOffset.left + curLeft;
   }
 
-  if ("using" in options) {
-    options.using.call(elem, props);
-
-  } else {
-    css(elem, props);
-  }
+  css(elem, props);
 }
 
-function offset < TElement = HTMLElement > (elem: TElement, options: Offset | ((index: number, currentOffset: Offset) => Offset)): void;
+function offset<TElement extends HTMLElement>(
+  elem: TElement,
+  options: Offset | ((index: number, currentOffset: Offset) => Offset)
+): void;
 
-function offset < TElement = HTMLElement > (elem: TElement): offset;
+function offset<TElement extends HTMLElement>(elem: TElement): Offset;
 
-
-function offset < TElement = HTMLElement > (elems: LikeArray < TElement > , options ? : Offset | ((index: number, currentOffset: Offset) => Offset)) {
-
+function offset<TElement extends HTMLElement>(
+  elems: LikeArray<TElement>,
+  options?: Offset | ((index: number, currentOffset: Offset) => Offset)
+) {
   // Preserve chaining for setter
   if (arguments.length) {
-
     each(elems, (i, elem) => {
-      setOffset(elem, options, i);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      setOffset(elem, options as any, i);
     });
 
-    return
+    return;
   }
 
-  const rect, win,
-    elem = elems[0];
+  const elem = elems[0];
 
   if (!elem) {
     return;
@@ -80,16 +103,16 @@ function offset < TElement = HTMLElement > (elems: LikeArray < TElement > , opti
   if (!elem.getClientRects().length) {
     return {
       top: 0,
-      left: 0
+      left: 0,
     };
   }
 
-  rect = elem.getBoundingClientRect();
-  win = elem.ownerDocument.defaultView;
+  const rect = elem.getBoundingClientRect();
+  const win = elem.ownerDocument.defaultView || window;
   return {
     top: rect.top + win.pageYOffset,
-    left: rect.left + win.pageXOffset
+    left: rect.left + win.pageXOffset,
   };
 }
 
-export default offset
+export default offset;

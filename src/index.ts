@@ -4,7 +4,7 @@ import { isArrayLike } from "./utils/is";
 import each from "./static/each";
 import extend from "./static/extend";
 import ready from "./static/ready";
-import setData, { removeData } from "./static/data";
+import setData, { removeData } from "./static/data";  
 import { on, one, off } from "./static/event";
 import type LikeArray from "./types/LikeArray";
 

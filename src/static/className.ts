@@ -1,6 +1,13 @@
-const rnothtmlwhite = (/[^\x20\t\r\n\f]+/g);
+import LikeArray from "../types/LikeArray";
+import { isFunction } from "../utils/is";
 
-function classesToArray(value: string | string[]): string[] {
+import { attr } from "./attr";
+import data from "./data";
+import each from "./each";
+
+const rnothtmlwhite = /[^\x20\t\r\n\f]+/g;
+
+function classesToArray(value: string | readonly string[]): readonly string[] {
   if (Array.isArray(value)) {
     return value;
   }
@@ -10,23 +17,28 @@ function classesToArray(value: string | string[]): string[] {
   return [];
 }
 
-function getClass < TElement = HTMLElement > (elem: TElement): string {
-  return elem?.getAttribute("class") || elem?.className || ""
+function getClass<TElement extends HTMLElement>(elem: TElement): string {
+  return elem?.getAttribute("class") || elem?.className || "";
 }
 
 export function stripAndCollapse(value: string): string {
-  var tokens = value.match(rnothtmlwhite) || [];
+  const tokens = value.match(rnothtmlwhite) || [];
   return tokens.join(" ");
 }
 
-function addClass < TElement = HTMLElement > (elems: LikeArray < TElement > , value: string | string[] | ((index: number, currentClass: string) => string | string[])): void {
-
+function addClass<TElement extends HTMLElement>(
+  elems: LikeArray<TElement>,
+  value:
+    | string
+    | readonly string[]
+    | ((index: number, currentClass: string) => string | readonly string[])
+): void {
   if (isFunction(value)) {
     each(elems, (j, elem) => {
       addClass([elem], value.call(elem, j, getClass(elem)));
     });
 
-    return
+    return;
   }
 
   const classes = classesToArray(value);
@@ -34,40 +46,44 @@ function addClass < TElement = HTMLElement > (elems: LikeArray < TElement > , va
   if (classes.length) {
     each(elems, (i, elem) => {
       const curValue = getClass(elem);
-      let cur = elem.nodeType === 1 && (" " + stripAndCollapse(curValue) + " ");
+      // eslint-disable-next-line functional/no-let
+      let cur = elem.nodeType === 1 && " " + stripAndCollapse(curValue) + " ";
 
       if (cur) {
         each(classes, (i, clazz) => {
-          if (cur.indexOf(" " + clazz + " ") < 0) {
+          if ((cur as string).includes(" " + clazz + " ") === false) {
             cur += clazz + " ";
           }
-        })
+        });
 
         // Only assign if different to avoid unneeded rendering.
-        finalValue = stripAndCollapse(cur);
+        const finalValue = stripAndCollapse(cur);
         if (curValue !== finalValue) {
           elem.setAttribute("class", finalValue);
         }
       }
-    })
+    });
   }
-
-
 }
 
-function removeClass < TElement = HTMLElement > (elems: LikeArray < TElement > , value ? : string | string[] | ((index: number, currentClass: string) => string | string[])): void {
-
+function removeClass<TElement extends HTMLElement>(
+  elems: LikeArray<TElement>,
+  value?:
+    | string
+    | readonly string[]
+    | ((index: number, currentClass: string) => string | readonly string[])
+): void {
   if (isFunction(value)) {
     each(elems, (j, elem) => {
       removeClass([elem], value.call(elem, j, getClass(elem)));
     });
 
-    return
+    return;
   }
 
   if (value === void 0) {
     attr(elems, "class", "");
-    return
+    return;
   }
 
   const classes = classesToArray(value);
@@ -76,60 +92,89 @@ function removeClass < TElement = HTMLElement > (elems: LikeArray < TElement > ,
     each(elems, (i, elem) => {
       const curValue = getClass(elem);
 
-      let cur = elem.nodeType === 1 && (" " + stripAndCollapse(curValue) + " ");
+      // eslint-disable-next-line functional/no-let
+      let cur = elem.nodeType === 1 && " " + stripAndCollapse(curValue) + " ";
 
       if (cur) {
         each(classes, (i, clazz) => {
           // Remove *all* instances
-          while (cur.indexOf(" " + clazz + " ") > -1) {
-            cur = cur.replace(" " + clazz + " ", " ");
+          // eslint-disable-next-line functional/no-loop-statement
+          while ((cur as string).includes(" " + clazz + " ")) {
+            cur = (cur as string).replace(" " + clazz + " ", " ");
           }
-        })
+        });
 
         // Only assign if different to avoid unneeded rendering.
-        finalValue = stripAndCollapse(cur);
+        const finalValue = stripAndCollapse(cur);
         if (curValue !== finalValue) {
           elem.setAttribute("class", finalValue);
         }
       }
-    })
+    });
   }
-
 }
-
-function toggleClass < TElement = HTMLElement > (elems: LikeArray < TElement > , value: string | string[] | ((index: number, currentClass: string) => string | string[]), stateVal ? : boolean): void {
+function toggleClass<TElement extends HTMLElement>(
+  elems: LikeArray<TElement>,
+  value: string | readonly string[]
+): void;
+function toggleClass<TElement extends HTMLElement>(
+  elems: LikeArray<TElement>,
+  value:
+    | string
+    | readonly string[]
+    | ((
+        index: number,
+        currentClass: string,
+        exists: boolean
+      ) => string | readonly string[]),
+  stateVal: boolean
+): void;
+function toggleClass<TElement extends HTMLElement>(
+  elems: LikeArray<TElement>,
+  value:
+    | string
+    | readonly string[]
+    | ((
+        index: number,
+        currentClass: string,
+        exists: boolean
+      ) => string | readonly string[]),
+  stateVal?: boolean
+): void {
   const type = typeof value,
     isValidValue = type === "string" || Array.isArray(value);
 
   if (typeof stateVal === "boolean" && isValidValue) {
-    return stateVal ? addClass(elems, value) : removeClass(elems, value);
+    return stateVal
+      ? // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        addClass(elems, value as any)
+      : // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        removeClass(elems, value as any);
   }
 
   if (isFunction(value)) {
     each(elems, (i, elem) => {
-      toggleClass(elem,
-        value.call(this, i, getClass(this), stateVal),
-        stateVal
+      toggleClass(
+        [elem],
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        value.call(elem, i, getClass(elem), stateVal!),
+        // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+        stateVal!
       );
     });
 
-    return
+    return;
   }
 
   each(elems, (i, elem) => {
-    var className, i, self, classNames;
-
     if (isValidValue) {
-
       each(classesToArray(value), (i, className) => {
-        if (hasClass(elem, className)) {
-          removeClass(elem, className);
+        if (hasClass([elem], className)) {
+          removeClass([elem], className);
         } else {
-          addClass(elm, className);
+          addClass([elem], className);
         }
-      })
-
-
+      });
 
       // Toggle whole class name
     } else if (value === undefined || type === "boolean") {
@@ -138,24 +183,29 @@ function toggleClass < TElement = HTMLElement > (elems: LikeArray < TElement > ,
         data(elem, "__className__", className);
       }
 
-      elem.setAttribute("class",
-        className || value === false ?
-        "" :
-        data(elem, "__className__") || ""
-      )
-
+      elem.setAttribute(
+        "class",
+        className ? "" : data(elem, "__className__") || ""
+      );
     }
   });
 }
 
-function hasClass < TElement = HTMLElement > (elems: LikeArray < TElement > , selector: string): boolean {
+function hasClass<TElement extends HTMLElement>(
+  elems: LikeArray<TElement>,
+  selector: string
+): boolean {
+  // eslint-disable-next-line functional/no-let
   let elem,
     i = 0;
 
   const className = " " + selector + " ";
+  // eslint-disable-next-line functional/no-loop-statement
   while ((elem = elems[i++])) {
-    if (elem.nodeType === 1 &&
-      (" " + stripAndCollapse(getClass(elem)) + " ").indexOf(className) > -1) {
+    if (
+      elem.nodeType === 1 &&
+      (" " + stripAndCollapse(getClass(elem)) + " ").indexOf(className) > -1
+    ) {
       return true;
     }
   }
@@ -163,9 +213,4 @@ function hasClass < TElement = HTMLElement > (elems: LikeArray < TElement > , se
   return false;
 }
 
-export {
-  addClass,
-  removeClass,
-  toggleClass,
-  hasClass
-}
+export { addClass, removeClass, toggleClass, hasClass };

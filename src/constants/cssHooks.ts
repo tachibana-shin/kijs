@@ -1,3 +1,5 @@
+import { curCSS } from "../static/css";
+
 export default {
   opacity: {
     get<TElement = HTMLElement>(
@@ -5,8 +7,7 @@ export default {
       computed: boolean
     ): string | void {
       if (computed) {
-        // We should always get a number back from opacity
-        var ret = curCSS(elem, "opacity");
+        const ret = curCSS(elem, "opacity");
         return ret === "" ? "1" : ret;
       }
     },

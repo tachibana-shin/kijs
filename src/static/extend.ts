@@ -1,8 +1,15 @@
-import { isFunction, isPlainObject } from "../utils/is";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable functional/no-loop-statement */
+/* eslint-disable functional/immutable-data */
+/* eslint-disable prefer-rest-params */
+/* eslint-disable functional/functional-parameters */
+import { isFunction, isObject } from "../utils/is";
 
-function extend(deep: boolean, ...src: object[]): any;
-function extend() {
-  var options,
+// eslint-disable-next-line @typescript-eslint/ban-types
+function extend(deep: boolean, ...src: readonly object[]): any;
+function extend(this: any) {
+  // eslint-disable-next-line functional/no-let
+  let options,
     name,
     src,
     copy,
@@ -10,6 +17,7 @@ function extend() {
     clone,
     target = arguments[0] || {},
     i = 1,
+    // eslint-disable-next-line prefer-const
     length = arguments.length,
     deep = false;
 
@@ -50,14 +58,14 @@ function extend() {
         if (
           deep &&
           copy &&
-          (isPlainObject(copy) || (copyIsArray = Array.isArray(copy)))
+          (isObject(copy) || (copyIsArray = Array.isArray(copy)))
         ) {
           src = target[name];
 
           // Ensure proper type for the source value
           if (copyIsArray && !Array.isArray(src)) {
             clone = [];
-          } else if (!copyIsArray && !isPlainObject(src)) {
+          } else if (!copyIsArray && !isObject(src)) {
             clone = {};
           } else {
             clone = src;

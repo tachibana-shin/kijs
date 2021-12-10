@@ -1,5 +1,5 @@
 export default {
-  linear(p: number): numbee {
+  linear(p: number): number {
     return p;
   },
   swing(p: number): number {

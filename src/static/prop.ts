@@ -1,8 +1,7 @@
 const propHooks = {
   tabIndex: {
     get(elem) {
-
-      var tabindex = elem.getAttribute("tabindex")
+      var tabindex = elem.getAttribute("tabindex");
 
       if (tabindex) {
         return parseInt(tabindex, 10);
@@ -10,21 +9,19 @@ const propHooks = {
 
       if (
         rfocusable.test(elem.nodeName) ||
-        rclickable.test(elem.nodeName) &&
-        elem.href
+        (rclickable.test(elem.nodeName) && elem.href)
       ) {
         return 0;
       }
 
       return -1;
-    }
-  }
-}
+    },
+  },
+};
 const propFix = {
-  "for": "htmlr",
-  "class": "className"
-}
-
+  for: "htmlr",
+  class: "className",
+};
 
 if (!support.optSelected) {
   propHooks.selected = {
@@ -36,7 +33,6 @@ if (!support.optSelected) {
       return null;
     },
     set(elem) {
-
       /* eslint no-unused-expressions: "off" */
 
       const parent = elem.parentNode;
@@ -47,12 +43,17 @@ if (!support.optSelected) {
           parent.parentNode.selectedIndex;
         }
       }
-    }
+    },
   };
 }
 
-export default function prop < TElement = HTMLElement > (elem: TElement, name: string, value ? : any): void | any {
-  var ret, hooks,
+export default function prop<TElement = HTMLElement>(
+  elem: TElement,
+  name: string,
+  value?: any
+): void | any {
+  var ret,
+    hooks,
     nType = elem.nodeType;
 
   // Don't get/set properties on text, comment and attribute nodes
@@ -61,15 +62,17 @@ export default function prop < TElement = HTMLElement > (elem: TElement, name: s
   }
 
   if (nType !== 1) {
-
     // Fix name and attach hooks
     name = propFix[name] || name;
     hooks = propHooks[name];
   }
 
   if (value !== undefined) {
-    if (hooks && "set" in hooks &&
-      (ret = hooks.set(elem, value, name)) !== undefined) {
+    if (
+      hooks &&
+      "set" in hooks &&
+      (ret = hooks.set(elem, value, name)) !== undefined
+    ) {
       return ret;
     }
 
@@ -83,10 +86,11 @@ export default function prop < TElement = HTMLElement > (elem: TElement, name: s
   return elem[name];
 }
 
-function removeProp<TElement = HTMLElement>(elem: TElement, name: string): void {
-  delete elem[propFix[name] || name]
+function removeProp<TElement = HTMLElement>(
+  elem: TElement,
+  name: string
+): void {
+  delete elem[propFix[name] || name];
 }
 
-export {
-  prop, removeProp
-}
+export { prop, removeProp };

@@ -1,27 +1,56 @@
-const matchBool = /^(?:checked|selected|async|autofocus|autoplay|controls|defer|disabled|hidden|ismap|loop|multiple|open|readonly|required|scoped)$/i
+import support from "./isSupport";
+import prop from "./prop";
+
+const matchBool =
+  /^(?:checked|selected|async|autofocus|autoplay|controls|defer|disabled|hidden|ismap|loop|multiple|open|readonly|required|scoped)$/i;
+const rnothtmlwhite = /[^\x20\t\r\n\f]+/g;
+
 const attrHooks = {
   type: {
-    set(elem, value) {
-      if (!support.radioValue && value === "radio" &&
-        elem.nodeName === "INPUT") {
-        var val = elem.value;
+    set(elem: HTMLInputElement, value: string): string | void {
+      if (
+        !support.radioValue &&
+        value === "radio" &&
+        elem.nodeName === "INPUT"
+      ) {
+        const val = elem.value;
         elem.setAttribute("type", value);
         if (val) {
+          // eslint-disable-next-line functional/immutable-data
           elem.value = val;
         }
         return value;
       }
+    },
+  },
+};
+const boolHook = {
+  set(elem: HTMLInputElement, value: boolean, name: string): string | void {
+    if (value === false) {
+      removeAttr(elem, name);
+    } else {
+      elem.setAttribute(name, name);
     }
-  }
-}
+    return name;
+  },
+};
 
-function attr < TElement = HTMLElement > (elem: TElement, name: string): string;
+function attr<TElement = HTMLElement>(elem: TElement, name: string): string;
 
-function attr < TElement = HTMLElement > (elem: TElement, name: string, value: string | number): void
+function attr<TElement = HTMLElement>(
+  elem: TElement,
+  name: string,
+  value: string | number
+): void;
 
-function attr < TElement = HTMLElement > (elem: TElement, name: string, value ? : string | number) {
-  var ret, hooks,
-    nType = elem.nodeType;
+function attr<TElement extends HTMLElement>(
+  elem: TElement,
+  name: string,
+  value?: string | number
+) {
+  // eslint-disable-next-line functional/no-let
+  let ret, hooks;
+  const nType = elem.nodeType;
 
   // Don't get/set attributes on text, comment and attribute nodes
   if (nType === 3 || nType === 8 || nType === 2) {
@@ -35,8 +64,10 @@ function attr < TElement = HTMLElement > (elem: TElement, name: string, value ? 
 
   // Attribute hooks are determined by the lowercase version
   // Grab necessary hook if one is defined
-  if (nType !== 1 || !jQuery.isXMLDoc(elem)) {
-    hooks = attrHooks[name.toLowerCase()] ||
+  if (nType !== 1) {
+    hooks =
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (attrHooks as any)[name.toLowerCase()] ||
       (matchBool.test(name) ? boolHook : undefined);
   }
 
@@ -46,8 +77,11 @@ function attr < TElement = HTMLElement > (elem: TElement, name: string, value ? 
       return;
     }
 
-    if (hooks && "set" in hooks &&
-      (ret = hooks.set(elem, value, name)) !== undefined) {
+    if (
+      hooks &&
+      "set" in hooks &&
+      (ret = hooks.set(elem, value, name)) !== undefined
+    ) {
       return ret;
     }
 
@@ -59,25 +93,27 @@ function attr < TElement = HTMLElement > (elem: TElement, name: string, value ? 
     return ret;
   }
 
-  ret = elem.getAttribute(name)
+  ret = elem.getAttribute(name);
 
   // Non-existent attributes return null, we normalize to undefined
   return ret == null ? undefined : ret;
 }
 
-function removeAttr< TElement = HTMLElement > (elem: TElement, value: string) {
-  var name,
-    i = 0,
-
-    // Attribute names can contain non-HTML whitespace characters
-    // https://html.spec.whatwg.org/multipage/syntax.html#attributes-2
-    attrNames = value && value.match(rnothtmlwhite);
+function removeAttr<TElement extends HTMLElement>(
+  elem: TElement,
+  value: string
+): void {
+  const attrNames = value && value.match(rnothtmlwhite);
 
   if (attrNames && elem.nodeType === 1) {
-    while ((name = attrNames[i++])) {
+    // eslint-disable-next-line functional/no-let
+    let i = 0;
+    const name = attrNames[i++];
+    // eslint-disable-next-line functional/no-loop-statement
+    while (name) {
       elem.removeAttribute(name);
     }
   }
 }
 
-export { attr, removeAttr }
+export { attr, removeAttr };
