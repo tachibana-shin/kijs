@@ -16,7 +16,11 @@ type Selector = string;
 type ReturnMyjs<TElement extends Element> = Myjs<TElement> & {
   readonly [index: number]: TElement;
 };
-type ParamNewMyjs<TElement> = Selector | TypeOrArray<TElement> | htmlString | Node;
+type ParamNewMyjs<TElement> =
+  | Selector
+  | TypeOrArray<TElement>
+  | htmlString
+  | Node;
 type CustomElementAdd = string | Element | Text;
 
 const rSelector = /[a-zA-Z_]|\.|#/;
@@ -32,14 +36,14 @@ export default function myjs<TElement extends Element>(
 class Myjs<TElement extends Element> {
   // eslint-disable-next-line functional/prefer-readonly-type
   length = 0;
+  readonly #prevObject: ReturnMyjs<TElement> | undefined;
   get myjs(): true {
     return true;
   }
-  readonly #prevObject: ReturnType<typeof myjs>| void = undefined;
   readonly #context = document;
   constructor(
     selector: Selector | TypeOrArray<TElement> | htmlString | Node,
-    prevObject?: ReturnType<typeof myjs>,
+    prevObject?: ReturnMyjs<TElement>,
     context = document
   ) {
     this.#prevObject = prevObject;
@@ -84,11 +88,11 @@ class Myjs<TElement extends Element> {
 
     return this;
   }
-  map<T = any>(
+  map<T extends Element>(
     callback: (this: TElement, index: number, element: TElement) => T
-  ): ReturnType<typeof myjs> {
+  ): ReturnMyjs<T> {
     // eslint-disable-next-line functional/prefer-readonly-type
-    const elements: Element[] = [];
+    const elements: T[] = [];
 
     this.each((index, value) => {
       // eslint-disable-next-line functional/immutable-data
@@ -103,7 +107,7 @@ class Myjs<TElement extends Element> {
       index: number,
       element: TElement
     ) => boolean | void
-  ): ReturnType<typeof myjs> {
+  ): ReturnMyjs<TElement> {
     const elements: any = [];
     this.each((index, value) => {
       if (callback.call(value, index, value)) {
@@ -119,57 +123,62 @@ class Myjs<TElement extends Element> {
   get(index: number): TElement | void {
     return (this as any)[index < -1 ? this.length + index : index];
   }
-  pushStack(elements: LikeArray<TElement>): ReturnType<typeof myjs> {
-    return myjs(Array.from(elements), this);
+  pushStack(elements: LikeArray<TElement>): ReturnMyjs<TElement> {
+    return myjs(Array.from(elements), this as any);
   }
-  slice(start: number, end?: number): ReturnType<typeof myjs> {
-    return myjs(Array.prototype.slice.call(this, start, end), this);
+  slice(start: number, end?: number): ReturnMyjs<TElement> {
+    return myjs(Array.prototype.slice.call(this, start, end), this as any);
   }
-  eq(index: number): ReturnType<typeof myjs> {
-    return myjs(this.get(index), this);
+  eq(index: number): ReturnMyjs<TElement> | void {
+    if (this.get(index)) {
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      return myjs(this.get(index)!, this as any);
+    }
   }
-  first(): ReturnType<typeof myjs> {
+  first(): ReturnMyjs<TElement>|void {
     return this.eq(0);
   }
-  last(): ReturnType<typeof myjs> {
+  last(): ReturnMyjs<TElement>|void {
     return this.eq(-1);
   }
-  even(): ReturnType<typeof myjs> {
+  even(): ReturnMyjs<TElement> {
     return this.filter((index) => index % 2 === 0);
   }
-  odd(): ReturnType<typeof myjs> {
+  odd(): ReturnMyjs<TElement> {
     return this.filter((index) => index % 2 !== 0);
   }
-  end(): ReturnType<typeof myjs> {
-    return this.#prevObject || myjs();
+  end(): ReturnMyjs<TElement> {
+    return this.#prevObject || myjs<TElement>([]);
   }
   readonly push = Array.prototype.push;
   readonly sort = Array.prototype.sort;
   readonly splice = Array.prototype.splice;
-  readonly extend = extend as (...src: readonly LikeArray<TElement>[]) => this;
-  find(selector: ParamNewMyjs): ReturnType<typeof myjs> {
+  readonly extend = extend as unknown as (...src: readonly LikeArray<TElement>[]) => this;
+  find<T extends Element>(selector: ParamNewMyjs<T>): ReturnMyjs<T> {
     if (typeof selector === "string") {
-      const elements = new Set<TElement>();
+      const elements = new Set<T>();
       this.each((index, value) => {
-        value.querySelectorAll(selector).forEach((i) => elements.add(i));
+        value.querySelectorAll<T>(selector).forEach((i) => elements.add(i));
       });
 
-      return myjs(Array.from(elements.values()), this);
+      return myjs(Array.from(elements.values()), this as any);
     }
 
     return myjs(selector).filter((index, value) => {
+      // eslint-disable-next-line functional/no-let
       let { length } = this;
+      // eslint-disable-next-line functional/no-loop-statement
       while (length--) {
-        if (this[length].contains(value)) {
+        if ((this as any)[length].contains(value)) {
           return true;
         }
       }
     });
   }
-  not(selector: ParamNewMyjs): ReturnType<typeof myjs>;
+  not(selector: ParamNewMyjs<TElement>): ReturnMyjs<TElement>;
   not(
     filter: (this: TElement, index: number, element: TElement) => void | boolean
-  ): ReturnType<typeof myjs>;
+  ): ReturnMyjs<TElement>;
   not(selector: any) {
     if (typeof selector === "function") {
       return this.filter((index, value) => {
@@ -183,10 +192,10 @@ class Myjs<TElement extends Element> {
       return elements.includes(value) === false;
     });
   }
-  is(selector: ParamNewMyjs): ReturnType<typeof myjs>;
+  is(selector: ParamNewMyjs<TElement>): ReturnMyjs<TElement>;
   is(
     filter: (this: TElement, index: number, element: TElement) => void | boolean
-  ): ReturnType<typeof myjs>;
+  ): ReturnMyjs<TElement>;
   is(selector: any) {
     if (typeof selector === "function") {
       return this.filter(selector);
@@ -205,11 +214,13 @@ class Myjs<TElement extends Element> {
     });
   }
   readonly init = myjs;
-  has(element: ParamNewMyjs): ReturnType<typeof myjs> {
+  has(element: ParamNewMyjs<TElement>): ReturnMyjs<TElement> {
     const elements = myjs(element);
 
     return this.filter((index, value) => {
+      // eslint-disable-next-line functional/no-let
       let { length } = elements;
+      // eslint-disable-next-line functional/no-loop-statement
       while (length--) {
         if (value.contains(elements[length])) {
           return true;
@@ -217,24 +228,28 @@ class Myjs<TElement extends Element> {
       }
     });
   }
-  closest(selector: ParamNewMyjs): ReturnType<typeof myjs> {
+  closest<T extends Element>(selector: ParamNewMyjs<T>): ReturnMyjs<T> {
     if (typeof selector === "string") {
-      const elements = new Set<TElement>();
+      const elements = new Set<T>();
 
       this.each((index, value) => {
-        const el = value.closest(selector);
+        const el = value.closest<T>(selector);
         if (el) {
           elements.add(el);
         }
       });
 
-      return myjs(Array.from(elements.values()), this);
+      return myjs(Array.from(elements.values()), this as any);
     }
 
     return myjs(selector).filter((index, value) => {
+      // eslint-disable-next-line functional/no-let
       let ok = false;
-      this.each((index, v) => {
+      this.each((index, v: any) => {
+        // eslint-disable-next-line functional/no-loop-statement
         while ((v = v.parentNode) && v.nodeType < 11) {
+          // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+          //@ts-ignore
           if (value === v) {
             ok = true;
 
@@ -242,15 +257,17 @@ class Myjs<TElement extends Element> {
           }
         }
       });
+
+      return ok;
     });
   }
-  index(selector?: string | ReturnType<typeof myjs> | TElement): number {
+  index(selector?: string | ReturnMyjs<TElement> | TElement): number {
     if (selector === undefined) {
-      return this[0]?.parentNode ? this.first().prevAll().length : -1;
+      return (this as any)[0]?.parentNode ? this.first()?.prevAll().length || -1 : -1;
     }
 
     if (typeof selector === "string") {
-      return Array.prototype.indexOf.call(myjs(selector), this[0]);
+      return Array.prototype.indexOf.call(myjs(selector), (this as any)[0]);
     }
 
     return Array.prototype.indexOf.call(
@@ -258,24 +275,25 @@ class Myjs<TElement extends Element> {
       selector instanceof Myjs ? selector[0] : selector
     );
   }
-  add(selector: ParamNewMyjs): ReturnType<typeof myjs> {
-    return this.pushStack(Array.from(myjs(selector)));
+  add(selector: ParamNewMyjs<TElement>): ReturnMyjs<TElement> {
+    return this.pushStack((myjs(selector)));
   }
-  addBack(selector: ParamNewMyjs): ReturnType<typeof myjs> {
-    return myjs(selector).pushStack(Array.from(this));
+  addBack(selector: ParamNewMyjs<TElement>): ReturnMyjs<TElement> {
+    return myjs(selector).pushStack(this.toArray());
   }
-  parent(selector?: string): ReturnType<typeof myjs> {
-    const elements = new Set<TElement>();
+  parent<T extends Element>(selector?: string): ReturnMyjs<T> {
+    const elements = new Set<T>();
 
     if (selector === void 0) {
       this.each((index, value) => {
-        if (value.parentNode?.nodeType < 11) {
-          elements.add(value.parentNode);
+        if (value.parentNode && value.parentNode.nodeType < 11) {
+          elements.add(value.parentNode as any);
         }
       });
     } else {
-      this.each((index, value) => {
-        while ((value = value.parentNode)?.nodeType < 11) {
+      this.each((index, value: any) => {
+        // eslint-disable-next-line functional/no-loop-statement
+        while ((value = value.parentNode) && value.nodeType < 11) {
           if (value.matches(selector)) {
             elements.add(value);
             break;
@@ -284,20 +302,22 @@ class Myjs<TElement extends Element> {
       });
     }
 
-    return myjs(Array.from(elements.value()), this);
+    return myjs(Array.from(elements.values()), this as any);
   }
-  parents(selector?: string): ReturnType<typeof myjs> {
-    const elements = new Set<TElement>();
+  parents<T extends Element>(selector?: string): ReturnMyjs<T> {
+    const elements = new Set<T>();
 
     if (selector === void 0) {
-      this.each((index, value) => {
-        while ((value = value.parentNode)?.nodeType < 11) {
+      this.each((index, value: any) => {
+        // eslint-disable-next-line functional/no-loop-statement
+        while ((value = value.parentNode) && value.nodeType < 11) {
           elements.add(value);
         }
       });
     } else {
-      this.each((index, value) => {
-        while ((value = value.parentNode)?.nodeType < 11) {
+      this.each((index, value: any) => {
+        // eslint-disable-next-line functional/no-loop-statement
+        while ((value = value.parentNode) && value.nodeType < 11) {
           if (value.matches(selector)) {
             elements.add(value);
           }
@@ -307,16 +327,17 @@ class Myjs<TElement extends Element> {
 
     return myjs(Array.from(elements.values()));
   }
-  parentsUntil(
-    excludeSelector?: ParamNewMyjs,
+  parentsUntil<T extends Element>(
+    excludeSelector?: ParamNewMyjs<T>,
     selector?: string
-  ): ReturnType<typeof myjs> {
-    const exclude = myjs(selectorExclude).toArray();
+  ): ReturnMyjs<TElement> {
+    const exclude = myjs(excludeSelector || []).toArray();
     const elements = new Set<TElement>();
 
     if (selector === void 0) {
-      this.each((index, value) => {
-        while ((value = value.parentNode)?.nodeType < 11) {
+      this.each((index, value: any) => {
+        // eslint-disable-next-line functional/no-loop-statement
+        while ((value = value.parentNode) && value.nodeType < 11) {
           if (exclude.includes(value)) {
             break;
           }
@@ -324,8 +345,9 @@ class Myjs<TElement extends Element> {
         }
       });
     } else {
-      this.each((index, value) => {
-        while ((value = value.parentNode)?.nodeType < 11) {
+      this.each((index, value: any) => {
+        // eslint-disable-next-line functional/no-loop-statement
+        while ((value = value.parentNode) && value.nodeType < 11) {
           if (exclude.includes(value)) {
             break;
           }
@@ -338,102 +360,109 @@ class Myjs<TElement extends Element> {
 
     return myjs(Array.from(elements.values()));
   }
-  next(selector?: string): ReturnType<typeof myjs> {
-    const elements = new Set<TElement>();
+  next<T extends Element>(selector?: string): ReturnMyjs<T> {
+    const elements = new Set<T>();
 
     if (selector === void 0) {
       this.each((index, value) => {
-        if (value.nextSibling) {
-          elements.add(value.nextSibling);
+        if (value.nextElementSibling) {
+          elements.add(value.nextElementSibling as T);
         }
       });
     } else {
-      this.each((index, value) => {
-        while ((value = value.nextSibling)) {
+      this.each((index, value: any) => {
+        // eslint-disable-next-line functional/no-loop-statement
+        while ((value = value.nextElementSibling)) {
           if (value.matches(selector)) {
-            elements.push(value);
+            elements.add(value);
             break;
           }
         }
       });
     }
 
-    return myjs(Array.from(elements.values()), this);
+    return myjs(Array.from(elements.values()), this as any);
   }
-  prev(selector?: string): ReturnType<typeof myjs> {
-    const elements = new Set<TElement>();
+  prev<T extends Element>(selector?: string): ReturnMyjs<T> {
+    const elements = new Set<T>();
 
     if (selector === void 0) {
       this.each((index, value) => {
-        if (value.prevSibling) {
-          elements.add(value.prevSibling);
+        if (value.previousElementSibling) {
+          elements.add(value.previousElementSibling as any);
         }
       });
     } else {
-      this.each((index, value) => {
-        while ((value = value.prevSibling)) {
+      this.each((index, value: any) => {
+        // eslint-disable-next-line functional/no-loop-statement
+        while ((value = value.nextElementSibling)) {
           if (value.matches(selector)) {
-            elements.push(value);
+            elements.add(value);
             break;
           }
         }
       });
     }
 
-    return myjs(Array.from(elements.values()), this);
+    return myjs(Array.from(elements.values()), this as any);
   }
-  nextAll(selector?: string): ReturnType<typeof myjs> {
-    const elements = new Set<TElement>();
+  nextAll<T extends Element>(selector?: string): ReturnMyjs<T> {
+    const elements = new Set<T>();
 
     if (selector === void 0) {
-      this.each((index, value) => {
-        while ((value = value.nextSibling)) {
-          elements.push(value);
+      this.each((index, value: any) => {
+        // eslint-disable-next-line functional/no-loop-statement
+        while ((value = value.nextElementSibling)) {
+          elements.add(value);
         }
       });
     } else {
-      this.each((index, value) => {
-        while ((value = value.nextSibling)) {
+      this.each((index, value: any) => {
+        // eslint-disable-next-line functional/no-loop-statement
+        while ((value = value.nextElementSibling)) {
           if (value.matches(selector)) {
-            elements.push(value);
+            elements.add(value);
           }
         }
       });
     }
 
-    return myjs(Array.from(elements.values()), this);
+    return myjs(Array.from(elements.values()), this as any);
   }
-  prevAll(selector?: string): ReturnType<typeof myjs> {
-    const elements = new Set<TElement>();
+  prevAll<T extends Element>(selector?: string): ReturnMyjs<T> {
+    const elements = new Set<T>();
 
     if (selector === void 0) {
-      this.each((index, value) => {
-        while ((value = value.prevSibling)) {
-          elements.push(value);
+      this.each((index, value: any) => {
+        // eslint-disable-next-line functional/no-loop-statement
+        while ((value = value.previousElementSibling)) {
+          elements.add(value);
         }
       });
     } else {
-      this.each((index, value) => {
-        while ((value = value.prevSibling)) {
+      this.each((index, value: any) => {
+        // eslint-disable-next-line functional/no-loop-statement
+        while ((value = value.previousElementSibling)) {
           if (value.matches(selector)) {
-            elements.push(value);
+            elements.add(value);
           }
         }
       });
     }
 
-    return myjs(Array.from(elements.values()), this);
+    return myjs(Array.from(elements.values()), this as any);
   }
-  nextUntil(
-    selectorExclude?: ParamNewMyjs,
+  nextUntil<T extends Element>(
+    selectorExclude?: ParamNewMyjs<T>,
     selector?: string
-  ): ReturnType<typeof myjs> {
-    const exclude = myjs(selectorExclude).toArray();
+  ): ReturnMyjs<TElement> {
+    const exclude = myjs(selectorExclude || []).toArray();
     const elements = new Set<TElement>();
 
     if (selector === void 0) {
       this.each((index, value) => {
-        while ((value = value.nextSibling)) {
+        // eslint-disable-next-line functional/no-loop-statement
+        while ((value = value.nextElementSibling)) {
           if (exclude.includes(value)) {
             break;
           }
@@ -458,7 +487,7 @@ class Myjs<TElement extends Element> {
   prevUntil(
     selectorExclude?: ParamNewMyjs,
     selector?: string
-  ): ReturnType<typeof myjs> {
+  ): ReturnMyjs<TElement> {
     const exclude = myjs(selectorExclude).toArray();
     const elements = new Set<TElement>();
 
@@ -486,7 +515,7 @@ class Myjs<TElement extends Element> {
 
     return myjs(Array.from(elements.values()), this);
   }
-  siblings(selector?: string): ReturnType<typeof myjs> {
+  siblings(selector?: string): ReturnMyjs<TElement> {
     const elements = new Set<TElement>();
 
     if (selector === void 0) {
@@ -532,7 +561,7 @@ class Myjs<TElement extends Element> {
 
     return myjs(Array.from(elements.values()), this);
   }
-  contents(): ReturnType<typeof myjs> {
+  contents(): ReturnMyjs<TElement> {
     const elements = new Set<TElement>();
 
     this.each((index, value) => {
@@ -754,7 +783,7 @@ class Myjs<TElement extends Element> {
   clone(
     dataAndEvent = false,
     deepDataAndEvent?: boolean = dataAndEvent
-  ): ReturnType<typeof myjs> {
+  ): ReturnMyjs<TElement> {
     return this.map((index, elem) =>
       clone(elem, dataAndEvent, deepDataAndEvent)
     );
@@ -788,19 +817,19 @@ class Myjs<TElement extends Element> {
 
     return this;
   }
-  appendTo(selector: ParamNewMyjs): ReturnType<typeof myjs> {
+  appendTo(selector: ParamNewMyjs): ReturnMyjs<TElement> {
     return myjs(selector).append(this);
   }
-  prependTo(selector: ParamNewMyjs): ReturnType<typeof myjs> {
+  prependTo(selector: ParamNewMyjs): ReturnMyjs<TElement> {
     return myjs(selector).prepend(this);
   }
-  insertAfter(selector: ParamNewMyjs): ReturnType<typeof myjs> {
+  insertAfter(selector: ParamNewMyjs): ReturnMyjs<TElement> {
     return myjs(selector).after(this);
   }
-  insertBefore(selector: ParamNewMyjs): ReturnType<typeof myjs> {
+  insertBefore(selector: ParamNewMyjs): ReturnMyjs<TElement> {
     return myjs(selector).before(this);
   }
-  replaceAll(selector: ParamNewMyjs): ReturnType<typeof myjs> {
+  replaceAll(selector: ParamNewMyjs): ReturnMyjs<TElement> {
     return myjs(selector).replaceWith(this);
   }
   css<Prop extends keyof HTMLElement["prototype"]["style"]>(
@@ -1102,10 +1131,7 @@ class Myjs<TElement extends Element> {
     return this.map(function () {
       let offsetParent = this.offsetParent;
 
-      while (
-        offsetParent &&
-        css(offsetParent, "position") === "static"
-      ) {
+      while (offsetParent && css(offsetParent, "position") === "static") {
         offsetParent = offsetParent.offsetParent;
       }
 
