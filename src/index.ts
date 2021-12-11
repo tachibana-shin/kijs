@@ -1104,7 +1104,7 @@ class Myjs<TElement extends Element> {
 
       while (
         offsetParent &&
-        jQuery.css(offsetParent, "position") === "static"
+        css(offsetParent, "position") === "static"
       ) {
         offsetParent = offsetParent.offsetParent;
       }
@@ -1252,7 +1252,7 @@ each({ Height: "height", Width: "width" }, (name, type) => {
   );
 });
 
-jQuery.each(
+each(
   (
     "blur focus focusin focusout resize scroll click dblclick " +
     "mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave " +
