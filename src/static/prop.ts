@@ -54,7 +54,7 @@ if (!support.optSelected) {
   };
 }
 
-export default function prop<TElement extends HTMLElement>(
+export default function prop<TElement extends Element>(
   elem: TElement,
   name: string,
   value?: any

@@ -1,30 +1,57 @@
+/* eslint-disable functional/no-loop-statement */
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { attr, removeAttr } from "./static/attr";
+import {
+  addClass,
+  hasClass,
+  removeClass,
+  toggleClass,
+} from "./static/className";
+import cleanData from "./static/cleanData";
+import clone from "./static/clone";
+import css from "./static/css";
 import setData, { removeData } from "./static/data";
 import each from "./static/each";
-import { off, on, one } from "./static/event";
+import { off, on, one, weakCacheEvent } from "./static/event";
 import extend from "./static/extend";
+import offset from "./static/offset";
+import pageOffset from "./static/pageOffset";
+import position from "./static/position";
+import prop, { removeProp } from "./static/prop";
 import ready from "./static/ready";
+import style from "./static/style";
+import getText from "./static/text";
+import toParam from "./static/toParam";
+import value from "./static/value";
 import type LikeArray from "./types/LikeArray";
 import createFragment from "./utils/createFragment";
-import { isArrayLike } from "./utils/is";
+import getStyles from "./utils/getStyles";
+import { isArrayLike, isFunction, isObject } from "./utils/is";
 
 // eslint-disable-next-line functional/prefer-readonly-type
-type TypeOrArray<T> = T | T[];
+type TypeOrArray<T> = T | T[] | readonly T[];
 type Node = Element | Text | Comment | Document | DocumentFragment;
 type htmlString = string;
 type Selector = string;
-type ReturnMyjs<TElement extends Element> = Myjs<TElement> & {
+type ReturnMyjs<TElement extends Node> = Myjs<TElement> & {
   readonly [index: number]: TElement;
 };
 type ParamNewMyjs<TElement> =
   | Selector
   | TypeOrArray<TElement>
   | htmlString
-  | Node;
+  | Node
+  | Window;
 type CustomElementAdd = string | Element | Text;
 
 const rSelector = /[a-zA-Z_]|\.|#/;
-export default function myjs<TElement extends Element>(
+const rCRLF = /\r?\n/g,
+  rsubmitterTypes = /^(?:submit|button|image|reset|file)$/i,
+  rsubmittable = /^(?:input|select|textarea|keygen)/i;
+
+const rcheckableType = /^(?:checkbox|radio)$/i;
+
+export default function myjs<TElement extends Node>(
   selector: ParamNewMyjs<TElement>,
 
   prevObject?: ReturnMyjs<TElement>,
@@ -33,16 +60,16 @@ export default function myjs<TElement extends Element>(
   return new Myjs<TElement>(selector, prevObject, context) as any;
 }
 
-class Myjs<TElement extends Element> {
+class Myjs<TElement extends Node> {
   // eslint-disable-next-line functional/prefer-readonly-type
   length = 0;
   readonly #prevObject: ReturnMyjs<TElement> | undefined;
+  readonly #context: Document;
   get myjs(): true {
     return true;
   }
-  readonly #context = document;
   constructor(
-    selector: Selector | TypeOrArray<TElement> | htmlString | Node,
+    selector: ParamNewMyjs<TElement>,
     prevObject?: ReturnMyjs<TElement>,
     context = document
   ) {
@@ -52,8 +79,7 @@ class Myjs<TElement extends Element> {
       return selector as any;
     }
 
-    // eslint-disable-next-line functional/prefer-readonly-type
-    const elements: Element[] = [];
+    const elements = new Set<Node>();
     if (typeof selector === "string") {
       // document
       selector = selector.trim();
@@ -61,24 +87,23 @@ class Myjs<TElement extends Element> {
       if (rSelector.test(selector[0])) {
         // this is query
         document.querySelectorAll<HTMLElement>(selector).forEach((el) => {
-          // eslint-disable-next-line functional/immutable-data
-          elements.push(el as any);
+          elements.add(el as any);
         });
       } else {
         // create element
         createFragment(selector).childNodes.forEach((el) => {
-          // eslint-disable-next-line functional/immutable-data
-          elements.push(el as any);
+          elements.add(el as any);
         });
       }
     }
     if (isArrayLike(selector)) {
-      // eslint-disable-next-line functional/immutable-data
-      elements.push(...selector);
+      selector.forEach((i) => elements.add(i));
     }
 
-    elements.forEach((item, index) => {
-      (this as any)[index] = item;
+    // eslint-disable-next-line functional/no-let
+    let index = 0;
+    Array.from(elements.values()).forEach((item) => {
+      (this as any)[index++] = item;
     });
   }
   each(
@@ -88,9 +113,9 @@ class Myjs<TElement extends Element> {
 
     return this;
   }
-  map<T extends Element>(
+  map<T = TElement>(
     callback: (this: TElement, index: number, element: TElement) => T
-  ): ReturnMyjs<T> {
+  ): readonly T[] {
     // eslint-disable-next-line functional/prefer-readonly-type
     const elements: T[] = [];
 
@@ -99,7 +124,7 @@ class Myjs<TElement extends Element> {
       elements.push(callback.call(value, index, value) as any);
     });
 
-    return myjs(elements, this as any);
+    return elements;
   }
   filter(
     callback: (
@@ -111,7 +136,7 @@ class Myjs<TElement extends Element> {
     const elements: any = [];
     this.each((index, value) => {
       if (callback.call(value, index, value)) {
-        elements.push(value);
+        elements.add(value);
       }
     });
 
@@ -127,7 +152,10 @@ class Myjs<TElement extends Element> {
     return myjs(Array.from(elements), this as any);
   }
   slice(start: number, end?: number): ReturnMyjs<TElement> {
-    return myjs(Array.prototype.slice.call(this, start, end), this as any);
+    return myjs(
+      Array.prototype.slice.call(this as any, start, end),
+      this as any
+    );
   }
   eq(index: number): ReturnMyjs<TElement> | void {
     if (this.get(index)) {
@@ -135,10 +163,10 @@ class Myjs<TElement extends Element> {
       return myjs(this.get(index)!, this as any);
     }
   }
-  first(): ReturnMyjs<TElement>|void {
+  first(): ReturnMyjs<TElement> | void {
     return this.eq(0);
   }
-  last(): ReturnMyjs<TElement>|void {
+  last(): ReturnMyjs<TElement> | void {
     return this.eq(-1);
   }
   even(): ReturnMyjs<TElement> {
@@ -153,12 +181,16 @@ class Myjs<TElement extends Element> {
   readonly push = Array.prototype.push;
   readonly sort = Array.prototype.sort;
   readonly splice = Array.prototype.splice;
-  readonly extend = extend as unknown as (...src: readonly LikeArray<TElement>[]) => this;
+  readonly extend = extend as unknown as (
+    ...src: readonly LikeArray<TElement>[]
+  ) => this;
   find<T extends Element>(selector: ParamNewMyjs<T>): ReturnMyjs<T> {
     if (typeof selector === "string") {
       const elements = new Set<T>();
       this.each((index, value) => {
-        value.querySelectorAll<T>(selector).forEach((i) => elements.add(i));
+        if (value instanceof Element) {
+          value.querySelectorAll<T>(selector).forEach((i) => elements.add(i));
+        }
       });
 
       return myjs(Array.from(elements.values()), this as any);
@@ -167,7 +199,7 @@ class Myjs<TElement extends Element> {
     return myjs(selector).filter((index, value) => {
       // eslint-disable-next-line functional/no-let
       let { length } = this;
-      // eslint-disable-next-line functional/no-loop-statement
+
       while (length--) {
         if ((this as any)[length].contains(value)) {
           return true;
@@ -203,7 +235,7 @@ class Myjs<TElement extends Element> {
 
     if (typeof selector === "string") {
       return this.filter((index, value) => {
-        return value.matches(selector);
+        return value instanceof Element && value.matches(selector);
       });
     }
 
@@ -220,7 +252,7 @@ class Myjs<TElement extends Element> {
     return this.filter((index, value) => {
       // eslint-disable-next-line functional/no-let
       let { length } = elements;
-      // eslint-disable-next-line functional/no-loop-statement
+
       while (length--) {
         if (value.contains(elements[length])) {
           return true;
@@ -233,9 +265,11 @@ class Myjs<TElement extends Element> {
       const elements = new Set<T>();
 
       this.each((index, value) => {
-        const el = value.closest<T>(selector);
-        if (el) {
-          elements.add(el);
+        if (value instanceof Element) {
+          const el = value.closest<T>(selector);
+          if (el) {
+            elements.add(el);
+          }
         }
       });
 
@@ -246,7 +280,6 @@ class Myjs<TElement extends Element> {
       // eslint-disable-next-line functional/no-let
       let ok = false;
       this.each((index, v: any) => {
-        // eslint-disable-next-line functional/no-loop-statement
         while ((v = v.parentNode) && v.nodeType < 11) {
           // eslint-disable-next-line @typescript-eslint/ban-ts-comment
           //@ts-ignore
@@ -263,7 +296,9 @@ class Myjs<TElement extends Element> {
   }
   index(selector?: string | ReturnMyjs<TElement> | TElement): number {
     if (selector === undefined) {
-      return (this as any)[0]?.parentNode ? this.first()?.prevAll().length || -1 : -1;
+      return (this as any)[0]?.parentNode
+        ? this.first()?.prevAll().length || -1
+        : -1;
     }
 
     if (typeof selector === "string") {
@@ -271,12 +306,12 @@ class Myjs<TElement extends Element> {
     }
 
     return Array.prototype.indexOf.call(
-      this,
+      this as any,
       selector instanceof Myjs ? selector[0] : selector
     );
   }
   add(selector: ParamNewMyjs<TElement>): ReturnMyjs<TElement> {
-    return this.pushStack((myjs(selector)));
+    return this.pushStack(myjs(selector));
   }
   addBack(selector: ParamNewMyjs<TElement>): ReturnMyjs<TElement> {
     return myjs(selector).pushStack(this.toArray());
@@ -292,7 +327,6 @@ class Myjs<TElement extends Element> {
       });
     } else {
       this.each((index, value: any) => {
-        // eslint-disable-next-line functional/no-loop-statement
         while ((value = value.parentNode) && value.nodeType < 11) {
           if (value.matches(selector)) {
             elements.add(value);
@@ -309,14 +343,12 @@ class Myjs<TElement extends Element> {
 
     if (selector === void 0) {
       this.each((index, value: any) => {
-        // eslint-disable-next-line functional/no-loop-statement
         while ((value = value.parentNode) && value.nodeType < 11) {
           elements.add(value);
         }
       });
     } else {
       this.each((index, value: any) => {
-        // eslint-disable-next-line functional/no-loop-statement
         while ((value = value.parentNode) && value.nodeType < 11) {
           if (value.matches(selector)) {
             elements.add(value);
@@ -336,7 +368,6 @@ class Myjs<TElement extends Element> {
 
     if (selector === void 0) {
       this.each((index, value: any) => {
-        // eslint-disable-next-line functional/no-loop-statement
         while ((value = value.parentNode) && value.nodeType < 11) {
           if (exclude.includes(value)) {
             break;
@@ -346,7 +377,6 @@ class Myjs<TElement extends Element> {
       });
     } else {
       this.each((index, value: any) => {
-        // eslint-disable-next-line functional/no-loop-statement
         while ((value = value.parentNode) && value.nodeType < 11) {
           if (exclude.includes(value)) {
             break;
@@ -364,14 +394,13 @@ class Myjs<TElement extends Element> {
     const elements = new Set<T>();
 
     if (selector === void 0) {
-      this.each((index, value) => {
+      this.each((index, value: any) => {
         if (value.nextElementSibling) {
           elements.add(value.nextElementSibling as T);
         }
       });
     } else {
       this.each((index, value: any) => {
-        // eslint-disable-next-line functional/no-loop-statement
         while ((value = value.nextElementSibling)) {
           if (value.matches(selector)) {
             elements.add(value);
@@ -387,14 +416,13 @@ class Myjs<TElement extends Element> {
     const elements = new Set<T>();
 
     if (selector === void 0) {
-      this.each((index, value) => {
+      this.each((index, value: any) => {
         if (value.previousElementSibling) {
           elements.add(value.previousElementSibling as any);
         }
       });
     } else {
       this.each((index, value: any) => {
-        // eslint-disable-next-line functional/no-loop-statement
         while ((value = value.nextElementSibling)) {
           if (value.matches(selector)) {
             elements.add(value);
@@ -411,14 +439,12 @@ class Myjs<TElement extends Element> {
 
     if (selector === void 0) {
       this.each((index, value: any) => {
-        // eslint-disable-next-line functional/no-loop-statement
         while ((value = value.nextElementSibling)) {
           elements.add(value);
         }
       });
     } else {
       this.each((index, value: any) => {
-        // eslint-disable-next-line functional/no-loop-statement
         while ((value = value.nextElementSibling)) {
           if (value.matches(selector)) {
             elements.add(value);
@@ -434,14 +460,12 @@ class Myjs<TElement extends Element> {
 
     if (selector === void 0) {
       this.each((index, value: any) => {
-        // eslint-disable-next-line functional/no-loop-statement
         while ((value = value.previousElementSibling)) {
           elements.add(value);
         }
       });
     } else {
       this.each((index, value: any) => {
-        // eslint-disable-next-line functional/no-loop-statement
         while ((value = value.previousElementSibling)) {
           if (value.matches(selector)) {
             elements.add(value);
@@ -460,116 +484,117 @@ class Myjs<TElement extends Element> {
     const elements = new Set<TElement>();
 
     if (selector === void 0) {
-      this.each((index, value) => {
-        // eslint-disable-next-line functional/no-loop-statement
+      this.each((index, value: any) => {
         while ((value = value.nextElementSibling)) {
           if (exclude.includes(value)) {
             break;
           }
-          elements.push(value);
+          elements.add(value);
         }
       });
     } else {
-      this.each((index, value) => {
+      this.each((index, value: any) => {
         while ((value = value.nextSibling)) {
-          if (exclide.includes(value)) {
+          if (exclude.includes(value)) {
             break;
           }
           if (value.matches(selector)) {
-            elements.push(value);
+            elements.add(value);
           }
         }
       });
     }
 
-    return myjs(Array.from(elements.values()), this);
+    return myjs(Array.from(elements.values()), this as any);
   }
-  prevUntil(
-    selectorExclude?: ParamNewMyjs,
+  prevUntil<R extends Element, T extends Element>(
+    selectorExclude?: ParamNewMyjs<T>,
     selector?: string
-  ): ReturnMyjs<TElement> {
-    const exclude = myjs(selectorExclude).toArray();
-    const elements = new Set<TElement>();
+  ): ReturnMyjs<R> {
+    const exclude = myjs(selectorExclude || []).toArray();
+    const elements = new Set<R>();
 
     if (selector === void 0) {
-      this.each((index, value) => {
-        while ((value = value.prevSibling)) {
+      this.each((index, value: any) => {
+        while ((value = value.previosElementSibling)) {
           if (exclude.includes(value)) {
             break;
           }
-          elements.push(value);
+          elements.add(value);
         }
       });
     } else {
-      this.each((index, value) => {
-        while ((value = value.prevSibling)) {
+      this.each((index, value: any) => {
+        while ((value = value.previosElementSibling)) {
           if (exclude.includes(value)) {
             break;
           }
           if (value.matches(selector)) {
-            elements.push(value);
+            elements.add(value);
           }
         }
       });
     }
 
-    return myjs(Array.from(elements.values()), this);
+    return myjs(Array.from(elements.values()), this as any);
   }
-  siblings(selector?: string): ReturnMyjs<TElement> {
-    const elements = new Set<TElement>();
+  siblings<T extends Element>(selector?: string): ReturnMyjs<T> {
+    const elements = new Set<T>();
 
     if (selector === void 0) {
-      this.each((index, value) => {
-        const children = Array.from(value.parentNode.children);
+      this.each((index, value: any) => {
+        const children = Array.from(value.parentNode?.children || []);
 
+        // eslint-disable-next-line functional/immutable-data
         children.splice(children.indexOf(value), 1);
 
-        children.forEach((i) => elements.add(i));
+        children.forEach((i) => elements.add(i as T));
       });
     } else {
-      this.each((index, value) => {
-        const children = Array.from(value.parentNode.children);
+      this.each((index, value: any) => {
+        const children = Array.from(value.parentNode?.children || []);
 
+        // eslint-disable-next-line functional/immutable-data
         children.splice(children.indexOf(value), 1);
 
-        children.forEach((i) => {
+        children.forEach((i: any) => {
           if (i.matches(selector)) {
-            elements.add(i);
+            elements.add(i as T);
           }
         });
       });
     }
 
-    return myjs(Array.from(elements.values()), this);
+    return myjs(Array.from(elements.values()), this as any);
   }
-  children(selector?: string): myjs<TElememt> {
-    const elements = new Set<TElement>();
+  children<T extends Element>(selector?: string): ReturnMyjs<T> {
+    const elements = new Set<T>();
 
     if (selector === void 0) {
-      this.each((index, value) => {
-        value.children.forEach((i) => elements.add(i));
+      this.each((index, value: any) => {
+        Array.from(value.children || []).forEach((i) => elements.add(i as T));
       });
     } else {
-      this.each((index, value) => {
-        value.children.forEach((i) => {
+      this.each((index, value: any) => {
+        Array.from(value.children || []).forEach((i: any) => {
           if (i.matches(selector)) {
-            elements.add(i);
+            elements.add(i as T);
           }
         });
       });
     }
 
-    return myjs(Array.from(elements.values()), this);
+    return myjs(Array.from(elements.values()), this as any);
   }
-  contents(): ReturnMyjs<TElement> {
-    const elements = new Set<TElement>();
+  contents<T extends Element>(): ReturnMyjs<T> {
+    const elements = new Set<T>();
 
-    this.each((index, value) => {
+    this.each((index, value: any) => {
       if (
         value.contentDocument != null &&
         Object.getPrototypeOf(value.contentDocument)
       ) {
-        value.contentDocument.forEach((i) => elements.add(i));
+        value.contentDocument.forEach((i: T) => elements.add(i));
 
         return;
       }
@@ -578,31 +603,33 @@ class Myjs<TElement extends Element> {
         value = value.content || value;
       }
 
-      elem.childNodes.forEach((i) => elements.add(i));
+      value.childNodes.forEach((i: T) => elements.add(i));
     });
 
-    return myjs(Array.from(elements.values()), this);
+    return myjs(Array.from(elements.values()), this as any);
   }
   readonly ready = ready;
+  // eslint-disable-next-line @typescript-eslint/ban-types
   data<T extends object>(): T;
   data<R = any>(key: string | number | symbol): R;
   data<V = any>(key: string | number | symbol, value: V): this;
+  // eslint-disable-next-line @typescript-eslint/ban-types
   data<D extends object>(data: D): this;
   data(key?: any, value?: any) {
     if (isObject(key) || value !== undefined) {
-      this.each((index, value) => {
+      this.each((index, value: any) => {
         setData(value, key, value);
       });
 
       return this;
     }
 
-    return setData(this[0], key);
+    return setData((this as any)[0], key);
   }
   removeData(): this;
   removeData(key: string | number | symbol): this;
   removeData(key?: any) {
-    this.each((index, value) => {
+    this.each((index, value: any) => {
       removeData(value, key);
     });
 
@@ -622,7 +649,7 @@ class Myjs<TElement extends Element> {
     selector: any,
     callback?: (this: TElement, event: E) => void
   ): this {
-    on(this, name, selector, callback);
+    on(this as any, name, selector, callback as any);
 
     return this;
   }
@@ -640,13 +667,12 @@ class Myjs<TElement extends Element> {
     selector: any,
     callback?: (this: TElement, event: E) => void
   ): this {
-    one(this, name, selector, callback);
+    one(this as any, name, selector, callback as any);
 
     return this;
   }
-  off(): this;
   off<N extends string, E extends Event>(
-    name: N,
+    name?: N,
     callback?: (this: TElement, event: E) => void
   ): this;
   off<N extends string, E extends Event>(
@@ -659,19 +685,19 @@ class Myjs<TElement extends Element> {
     selector: any,
     callback?: (this: TElement, event: E) => void
   ): this {
-    off(this, name, selector, callback);
+    off(this as any, name, selector, callback as any);
 
     return this;
   }
   detach(selector?: string): this {
     if (selector === void 0) {
       this.each((index, value) => {
-        value.parentNode.removeChildren(value);
+        value.parentNode?.removeChild(value);
       });
     } else {
-      this.each((index, value) => {
-        if (value.matches(selector)) {
-          value.parentNode.removeChildren(value);
+      this.each((index, value: any) => {
+        if (value.matches?.(selector)) {
+          value.parentNode?.removeChild(value);
         }
       });
     }
@@ -680,15 +706,15 @@ class Myjs<TElement extends Element> {
   }
   remove(selector?: string): this {
     if (selector === void 0) {
-      cleanData(this);
+      cleanData(this as any);
       this.each((index, value) => {
-        value.parentNode.removeChildren(value);
+        value.parentNode?.removeChild(value);
       });
     } else {
-      this.each((index, value) => {
-        if (value.matches(selector)) {
+      this.each((index, value: any) => {
+        if (value.matches?.(selector)) {
           cleanData([value]);
-          value.parentNode.removeChildren(value);
+          value.parentNode?.removeChild(value);
         }
       });
     }
@@ -699,7 +725,7 @@ class Myjs<TElement extends Element> {
   text(content: string | number): this;
   text(content?: string | number): string | this {
     if (content === undefined) {
-      return getText(this);
+      return getText(this as any);
     }
 
     this.empty().each((index, value) => {
@@ -708,16 +734,18 @@ class Myjs<TElement extends Element> {
         value.nodeType === 11 ||
         value.nodeType === 9
       ) {
-        value.textContent = content;
+        // eslint-disable-next-line functional/immutable-data
+        value.textContent = content + "";
       }
     });
 
     return this;
   }
   empty(): this {
-    cleanData(this);
+    cleanData(this as any);
     this.each((index, elem) => {
       if (elem.nodeType === 1) {
+        // eslint-disable-next-line functional/immutable-data
         elem.textContent = "";
       }
     });
@@ -725,6 +753,7 @@ class Myjs<TElement extends Element> {
     return this;
   }
   append(
+    // eslint-disable-next-line functional/functional-parameters
     ...contents: readonly (
       | CustomElementAdd
       | LikeArray<CustomElementAdd>
@@ -734,11 +763,17 @@ class Myjs<TElement extends Element> {
         ) => CustomElementAdd | LikeArray<CustomElementAdd>)
     )[]
   ): this {
-    insertElements(this, (elem, child) => elem.append(...child), ...contents);
+    insertElements(
+      this as any,
+      (elem, child) => elem.append(...child),
+      (e) => e.innerHTML,
+      ...contents
+    );
 
     return this;
   }
   prepend(
+    // eslint-disable-next-line functional/functional-parameters
     ...contents: readonly (
       | CustomElementAdd
       | LikeArray<CustomElementAdd>
@@ -748,11 +783,17 @@ class Myjs<TElement extends Element> {
         ) => CustomElementAdd | LikeArray<CustomElementAdd>)
     )[]
   ): this {
-    insertElements(this, (elem, child) => elem.prepend(...child), ...contents);
+    insertElements(
+      this as any,
+      (elem, child) => elem.prepend(...child),
+      (e) => e.innerHTML,
+      ...contents
+    );
 
     return this;
   }
   after(
+    // eslint-disable-next-line functional/functional-parameters
     ...contents: readonly (
       | CustomElementAdd
       | LikeArray<CustomElementAdd>
@@ -762,11 +803,17 @@ class Myjs<TElement extends Element> {
         ) => CustomElementAdd | LikeArray<CustomElementAdd>)
     )[]
   ): this {
-    insertElements(this, (elem, child) => elem.after(...child), ...contents);
+    insertElements(
+      this as any,
+      (elem, child) => elem.after(...child),
+      (e) => e.innerHTML,
+      ...contents
+    );
 
     return this;
   }
   before(
+    // eslint-disable-next-line functional/functional-parameters
     ...contents: readonly (
       | CustomElementAdd
       | LikeArray<CustomElementAdd>
@@ -776,32 +823,41 @@ class Myjs<TElement extends Element> {
         ) => CustomElementAdd | LikeArray<CustomElementAdd>)
     )[]
   ): this {
-    insertElements(this, (elem, child) => elem.before(...child), ...contents);
+    insertElements(
+      this as any,
+      (elem, child) => elem.before(...child),
+      (e) => e.innerHTML,
+      ...contents
+    );
 
     return this;
   }
   clone(
     dataAndEvent = false,
-    deepDataAndEvent?: boolean = dataAndEvent
+    deepDataAndEvent: boolean = dataAndEvent
   ): ReturnMyjs<TElement> {
-    return this.map((index, elem) =>
-      clone(elem, dataAndEvent, deepDataAndEvent)
+    return myjs(
+      this.map((_index, elem: any) =>
+        clone(elem, dataAndEvent, deepDataAndEvent)
+      )
     );
   }
   html(): string;
   html(htmlString: string): this;
   html(htmlString?: string): string | this {
     if (htmlString === undefined) {
-      return this[0].innerHTML;
+      return (this as any)[0].innerHTML;
     }
 
-    this.each((index, value) => {
+    this.each((index, value: any) => {
+      // eslint-disable-next-line functional/immutable-data
       value.innerHTML = htmlString;
     });
 
     return this;
   }
   replaceWith(
+    // eslint-disable-next-line functional/functional-parameters
     ...contents: readonly (
       | CustomElementAdd
       | LikeArray<CustomElementAdd>
@@ -811,92 +867,101 @@ class Myjs<TElement extends Element> {
         ) => CustomElementAdd | LikeArray<CustomElementAdd>)
     )[]
   ): this {
-    insertElements(this, (elem, child) => elem.after(...child), ...contents);
+    insertElements(
+      this as any,
+      (elem, child) => elem.after(...child),
+      (e) => e.innerHTML,
+      ...contents
+    );
 
     this.remove();
 
     return this;
   }
-  appendTo(selector: ParamNewMyjs): ReturnMyjs<TElement> {
-    return myjs(selector).append(this);
+  appendTo(selector: ParamNewMyjs<Element>): this {
+    myjs(selector).append(this as any);
+    return this;
   }
-  prependTo(selector: ParamNewMyjs): ReturnMyjs<TElement> {
-    return myjs(selector).prepend(this);
+  prependTo(selector: ParamNewMyjs<Element>): this {
+    myjs(selector).prepend(this as any);
+    return this;
   }
-  insertAfter(selector: ParamNewMyjs): ReturnMyjs<TElement> {
-    return myjs(selector).after(this);
+  insertAfter(selector: ParamNewMyjs<Element>): this {
+    myjs(selector).after(this as any);
+    return this;
   }
-  insertBefore(selector: ParamNewMyjs): ReturnMyjs<TElement> {
-    return myjs(selector).before(this);
+  insertBefore(selector: ParamNewMyjs<Element>): this {
+    myjs(selector).before(this as any);
+    return this;
   }
-  replaceAll(selector: ParamNewMyjs): ReturnMyjs<TElement> {
-    return myjs(selector).replaceWith(this);
+  replaceAll(selector: ParamNewMyjs<Element>): this {
+    myjs(selector).replaceWith(this as any);
+    return this;
   }
-  css<Prop extends keyof HTMLElement["prototype"]["style"]>(
+  css<Prop extends keyof CSSStyleDeclaration>(
     props: readonly Prop[]
-  ): Record<Prop, HTMLElement["prototype"]["style"][Prop]>;
-  css<Prop extends keyof HTMLElement["prototype"]["style"]>(
+  ): Record<Prop, CSSStyleDeclaration[Prop]>;
+  css<Prop extends keyof CSSStyleDeclaration>(
     prop: Prop
-  ): HTMLElement["prototype"]["style"][Prop];
-  css<Prop extends keyof HTMLElement["prototype"]["style"]>(
+  ): CSSStyleDeclaration[Prop];
+  css<Prop extends keyof CSSStyleDeclaration>(
     prop: Prop,
-    value: HTMLElement["prototype"]["style"][Prop]
+    value: CSSStyleDeclaration[Prop]
   ): this;
-  css<Prop extends keyof HTMLElement["prototype"]["style"]>(css: {
-    readonly [prop: Prop]: HTMLElement["prototype"]["style"][Prop];
+  css<Prop extends keyof CSSStyleDeclaration>(css: {
+    readonly [prop: string]: CSSStyleDeclaration[Prop];
   }): this;
   css(prop: any, value?: any) {
     if (Array.isArray(prop)) {
-      const map = {};
-      const styles = getStyles(this[0]);
+      const map = {} as any;
+      const styles = getStyles((this as any)[0]);
 
-      props.forEach((prop) => {
-        map[prop] = css(this[0], prop, false, styles);
+      prop.forEach((prop) => {
+        // eslint-disable-next-line functional/immutable-data
+        map[prop] = css((this as any)[0], prop, false, styles);
       });
 
       return map;
     }
     if (typeof prop !== "object" && value === undefined) {
-      return css(this[0], prop);
+      return css((this as any)[0], prop);
     }
     if (isObject(prop)) {
       this.each((i, elem) => {
-        each(prop, (prop, value) => {
-          style(elem, prop, value);
-        });
+        if (elem instanceof HTMLElement) {
+          each(prop, (prop: any, value) => {
+            style(elem, prop, value);
+          });
+        }
       });
 
       return this;
     }
 
     this.each((i, elem) => {
-      style(elem, prop, value);
-    });
-
-    return this;
-
-    this.each((i, elem) => {
-      style(elem, prop, value);
+      if (elem instanceof HTMLElement) {
+        style(elem, prop, value);
+      }
     });
 
     return this;
   }
-  attr(name: string): void | string;
+  attr(name: string): this | string;
   attr(name: string, value: string): this;
   attr(name: string, value?: string) {
     if (value === void 0) {
-      return attr(this[0], name);
+      return attr((this as any)[0], name);
     }
 
     this.each((i, v) => {
-      attr(v, nsme, value);
+      if (v instanceof Element) attr(v, name, value);
     });
 
     return this;
   }
   removeAttr(name: string): this {
     this.each((i, v) => {
-      removeAttr(v, name);
+      if (v instanceof Element) removeAttr(v, name);
     });
 
     return this;
@@ -905,17 +970,17 @@ class Myjs<TElement extends Element> {
   prop<T = any>(name: string, value: T): this;
   prop<T = any>(name: string, value?: T) {
     if (value === void 0) {
-      return prop(this[0], name);
+      return prop((this as any)[0], name);
     }
 
-    this.each((i, v) => {
-      prop(v, nsme, value);
+    this.each((i, v: any) => {
+      prop(v, name, value);
     });
 
     return this;
   }
   removeProp(name: string): this {
-    this.each((i, v) => {
+    this.each((i, v: any) => {
       removeProp(v, name);
     });
 
@@ -927,7 +992,7 @@ class Myjs<TElement extends Element> {
       | readonly string[]
       | ((index: number, className: string) => string | readonly string[])
   ): this {
-    addClass(this, classes);
+    addClass(this as any, classes);
 
     return this;
   }
@@ -937,7 +1002,7 @@ class Myjs<TElement extends Element> {
       | readonly string[]
       | ((index: number, className: string) => string | readonly string[])
   ): this {
-    removeClass(this, classes);
+    removeClass(this as any, classes);
 
     return this;
   }
@@ -947,48 +1012,53 @@ class Myjs<TElement extends Element> {
       | readonly string[]
       | ((index: number, className: string) => string | readonly string[])
   ): this {
-    toggleClass(this, classes);
+    toggleClass(this as any, classes as any);
 
     return this;
   }
   hasClass(clazz: string): boolean {
-    return hasClass(this, classes);
+    return hasClass(this as any, clazz);
   }
   value(): string | number | readonly (string | number)[];
   value(value: string | number | readonly (string | number)[]): this;
   value(val?: any) {
     if (val === void 0) {
-      return value(this);
+      return value(this as any);
     }
 
-    value(this, val);
+    value(this as any, val);
 
     return this;
   }
-  readonly val = value;
+  readonly val = this.value;
   trigger(name: string, data: any) {
     this.each((i, elem) => {
       const event = new Event(name);
-      event.data = data;
+      // eslint-disable-next-line functional/immutable-data
+      (event as any).data = data;
 
-      if (elem[name] && data === void 0) {
-        elem[name]();
+      if ((elem as any)[name] && data === void 0) {
+        (elem as any)[name]();
       } else {
         elem.dispatchEvent(event);
       }
+
+      (elem as any)[`on${name}`]?.(event);
     });
 
     return this;
   }
   triggerHandler(name: string, data: any): any {
+    // eslint-disable-next-line functional/no-let
     let lastVal;
-    weakCacheEvent
-      .get(this[0])
+    (weakCacheEvent as any)
+      .get((this as any)[0])
       ?.get(name)
-      .forEach((cb) => {
+      .forEach((cb: any) => {
         const event = new Event(name);
-        event.data = data;
-        lastVal = cb.handler.call(this[0], event);
+        // eslint-disable-next-line functional/immutable-data
+        (event as any).data = data;
+        lastVal = cb.handler.call((this as any)[0], event);
       });
 
     return lastVal;
@@ -1000,23 +1070,20 @@ class Myjs<TElement extends Element> {
     readonly name: string;
     readonly value: string;
   }[] {
-    return this.map((i, elem) => {
-      const elements = prop(elem, "elements");
-      return elements ? Array.from(elements) : this;
-    })
-      .filter(function (i, elem) {
-        const type = elem.type;
+    return this.filter(function (elem: any) {
+      const type = elem.type;
 
-        return (
-          this.name &&
-          !myjs(elem).is(":disabled") &&
-          rsubmittable.test(elem.nodeName) &&
-          !rsubmitterTypes.test(type) &&
-          (elem.checked || !rcheckableType.test(type))
-        );
-      })
-      .map(function (_i, elem) {
-        const val = value(elem);
+      return (
+        elem.name &&
+        !myjs(elem).is(":disabled") &&
+        rsubmittable.test(elem.nodeName) &&
+        !rsubmitterTypes.test(type) &&
+        (elem.checked || !rcheckableType.test(type))
+      );
+    })
+      .toArray()
+      .map((elem: any) => {
+        const val = value([elem]);
 
         if (val == null) {
           return null;
@@ -1025,50 +1092,57 @@ class Myjs<TElement extends Element> {
         if (Array.isArray(val)) {
           return val.map((val) => {
             return {
-              name: elem.name,
+              name: (elem as any).name,
               value: val.replace(rCRLF, "\r\n"),
             };
           });
         }
 
-        return { name: elem.name, value: val.replace(rCRLF, "\r\n") };
+        return {
+          name: (elem as any).name,
+          value: val.replace(rCRLF, "\r\n"),
+        };
       })
-      .get();
+      .filter(Boolean) as any;
   }
 
-  wrapAll(html: ParamNewMyjs): this {
+  wrapAll(html: ParamNewMyjs<Element>): this {
+    // eslint-disable-next-line functional/no-let
     let wrap;
 
-    if (this[0]) {
+    if ((this as any)[0]) {
       if (isFunction(html)) {
-        html = html.call(this[0]);
+        html = html.call((this as any)[0]);
       }
 
       // The elements to wrap the target around
-      wrap = myjs(html, this, this[0].ownerDocument).eq(0).clone(true);
+      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+      wrap = myjs(html, this as any, (this as any)[0].ownerDocument)
+        .eq(0)!
+        .clone(true);
 
-      if (this[0].parentNode) {
-        wrap.insertBefore(this[0]);
+      if ((this as any)[0].parentNode) {
+        wrap.insertBefore((this as any)[0]);
       }
 
-      wrap
-        .map((i, elem) => {
+      myjs(
+        wrap.map((i, elem) => {
           while (elem.firstElementChild) {
             elem = elem.firstElementChild;
           }
 
           return elem;
         })
-        .append(this);
+      ).append(this as any);
     }
 
     return this;
   }
 
-  wrapInner(html: ParamNewMyjs): this {
+  wrapInner<T extends Element>(html: ParamNewMyjs<T>): this {
     if (isFunction(html)) {
       this.each(function (i, e) {
-        myjs(e).wrapInner(html.call(this, i));
+        myjs(e).wrapInner(html.call(this as any, i));
       });
 
       return this;
@@ -1081,20 +1155,24 @@ class Myjs<TElement extends Element> {
       if (contents.length) {
         contents.wrapAll(html);
       } else {
-        self.append(html);
+        self.append(html as any);
       }
     });
 
     return this;
   }
 
-  wrap(
-    html: ParamNewMyjs | ((index: number, element: TElement) => ParamNewMyjs)
+  wrap<T extends Element>(
+    html:
+      | ParamNewMyjs<T>
+      | ((index: number, element: TElement) => ParamNewMyjs<T>)
   ): this {
     const htmlIsFunction = isFunction(html);
 
     this.each(function (i) {
-      myjs(this).wrapAll(htmlIsFunction ? html.call(this, i) : html);
+      myjs(this as any).wrapAll(
+        htmlIsFunction ? html.call(this as any, i, this) : html
+      );
     });
 
     return this;
@@ -1104,7 +1182,7 @@ class Myjs<TElement extends Element> {
     this.parent(selector)
       .not("body")
       .each((i, e) => {
-        myjs(e).replaceWith(this.childNodes);
+        myjs(e).replaceWith(e.childNodes as any);
       });
     return this;
   }
@@ -1116,73 +1194,65 @@ class Myjs<TElement extends Element> {
   };
   offset(options?: any) {
     if (options === undefined) {
-      return offset(this);
+      return offset(this as any);
     }
 
-    offset(this, options);
+    offset(this as any, options);
     return this;
   }
 
   position(): ReturnType<typeof position> {
-    return position(this[0]);
+    return position((this as any)[0]);
   }
 
-  offsetParent(): HTMLElement["prototype"]["offsetParent"] {
+  offsetParent(): readonly typeof HTMLElement["prototype"]["offsetParent"][] {
     return this.map(function () {
-      let offsetParent = this.offsetParent;
+      // eslint-disable-next-line functional/no-let
+      let offsetParent = (this as any).offsetParent;
 
       while (offsetParent && css(offsetParent, "position") === "static") {
         offsetParent = offsetParent.offsetParent;
       }
 
-      return offsetParent || documentElement;
-    });
+      return offsetParent || document.documentElement;
+    }) as any;
   }
 
   scrollLeft(): number;
   scrollLeft(value: number): this;
   scrollLeft(value?: number) {
     if (value === void 0) {
-      return pageOffset(this, "scrollLeft");
+      return pageOffset(this as any, "scrollLeft");
     }
 
-    pageOffset(this, "scrollLeft", value);
+    pageOffset(this as any, "scrollLeft", value);
+
+    return this;
   }
 
   scrollTop(): number;
   scrollTop(value: number): this;
   scrollTop(value?: number) {
     if (value === void 0) {
-      return pageOffset(this, "scrollTop");
+      return pageOffset(this as any, "scrollTop");
     }
 
-    pageOffset(this, "scrollTop", value);
+    pageOffset(this as any, "scrollTop", value);
+
+    return this;
   }
 
-  // space
-  innerWidth(value: number): this;
-  innerWidth(): number;
-  width(value: number): this;
-  width(): number;
-  outerWidth(value: number): this;
-  outerWidth(): number;
-  innerHeight(value: number): this;
-  innerHeight(): number;
-  height(value: number): this;
-  height(): number;
-  outerHeight(value: number): this;
-  outerheight(): number;
   bind<N extends string, E extends Event>(
     name: N,
     callback: (this: TElement, event: E) => void
   ): this {
-    return this.on(types, null, fn);
+    return this.on(name, callback);
   }
   unbind<N extends string, E extends Event>(
     name: N,
     callback: (this: TElement, event: E) => void
   ): this {
-    return this.off(name, null, callback);
+    return this.off(name, callback);
   }
 
   delegate<N extends string, E extends Event>(
@@ -1198,8 +1268,9 @@ class Myjs<TElement extends Element> {
     callback: (this: TElement, event: E) => void
   ): this {
     // ( namespace ) or ( selector, types [, fn] )
+    // eslint-disable-next-line functional/functional-parameters
     return arguments.length === 1
-      ? this.off(selector, "*")
+      ? this.off(selector)
       : this.off(name, selector || "*", callback);
   }
 
@@ -1216,118 +1287,143 @@ class Myjs<TElement extends Element> {
   ) {
     return this.mouseenter(fnOver).mouseleave(fnOut || fnOver);
   }
+
+  readonly height = (callSizeof("height", "content") as any).bind(
+    this
+  ) as FnSize<this>;
+  readonly innerHeight = (callSizeof("height", "padding") as any).bind(
+    this
+  ) as FnSize<this>;
+  readonly outerHeight = (callSizeof("height") as any).bind(
+    this
+  ) as FnSize<this>;
+  readonly width = (callSizeof("width", "content") as any).bind(
+    this
+  ) as FnSize<this>;
+  readonly innerWidth = (callSizeof("width", "padding") as any).bind(
+    this
+  ) as FnSize<this>;
+  readonly outerWidth = (callSizeof("width") as any).bind(this) as FnSize<this>;
 }
 
-each({ Height: "height", Width: "width" }, (name, type) => {
-  each(
-    {
-      padding: "inner" + name,
-      content: type,
-      "": "outer" + name,
-    },
-    (defaultExtra, funcName) => {
-      Myjs.prototype[funcName] = function (margin, value) {
-        const chainable =
-            arguments.length && (defaultExtra || typeof margin !== "boolean"),
-          extra =
-            defaultExtra ||
-            (margin === true || value === true ? "margin" : "border");
+type FnSize<T> = {
+  (): number;
+  (value: number): T;
+};
+function callSizeof(
+  type: "height" | "width",
+  defaultExtra: "padding" | "content" | "" = ""
+) {
+  const name = type.toUpperCase();
+  const funcName = {
+    padding: "inner" + name,
+    content: type,
+    "": "outer" + name,
+  }[defaultExtra];
 
-        let result;
-        this.each((i, elem) => {
-          let doc;
+  return function (this: ReturnMyjs<Element>, value: number, margin = false) {
+    const extra = !!defaultExtra || (margin === true ? "margin" : "border");
 
-          if (isWindow(elem)) {
-            // $( window ).outerWidth/Height return w/h including scrollbars (gh-1729)
-            result =
-              funcName.indexOf("outer") === 0
-                ? elem["inner" + name]
-                : elem.document.documentElement["client" + name];
-            return false;
-          }
+    // eslint-disable-next-line functional/no-let
+    let result;
+    this.each((i, elem) => {
+      // eslint-disable-next-line functional/no-let
+      let doc;
 
-          // Get document width or height
-          if (elem.nodeType === 9) {
-            doc = elem.documentElement;
+      if ((elem as any).window === elem) {
+        // $( window ).outerWidth/Height return w/h including scrollbars (gh-1729)
+        result =
+          funcName.indexOf("outer") === 0
+            ? (elem as any)["inner" + name]
+            : (elem as any).document.documentElement["client" + name];
+        return false;
+      }
 
-            // Either scroll[Width/Height] or offset[Width/Height] or client[Width/Height],
-            // whichever is greatest
-            result = Math.max(
-              elem.body["scroll" + name],
-              doc["scroll" + name],
-              elem.body["offset" + name],
-              doc["offset" + name],
-              doc["client" + name]
-            );
+      // Get document width or height
+      if (elem.nodeType === 9) {
+        doc = (elem as any).documentElement;
 
-            return false;
-          }
+        // Either scroll[Width/Height] or offset[Width/Height] or client[Width/Height],
+        // whichever is greatest
+        result = Math.max(
+          (elem as any).body["scroll" + name],
+          doc["scroll" + name],
+          (elem as any).body["offset" + name],
+          doc["offset" + name],
+          doc["client" + name]
+        );
 
-          if (value === undefined) {
-            result = css(elem, type, extra);
+        return false;
+      }
 
-            return false;
-          }
+      if (value === undefined) {
+        result = css(elem as any, type, extra);
 
-          style(elem, type, value, extra);
-        });
+        return false;
+      }
 
-        return result === void 0 ? this : result;
-      };
-    }
-  );
-});
+      style(elem as any, type, value, extra);
+    });
 
-each(
-  (
-    "blur focus focusin focusout resize scroll click dblclick " +
-    "mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave " +
-    "change select submit keydown keypress keyup contextmenu"
-  ).split(" "),
-  function (_i, name) {
-    // Handle event binding
-    Myjs.prototype[name] = function (fn) {
-      return arguments.length > 0
-        ? this.on(name, null, fn)
-        : this.trigger(name);
-    };
-  }
-);
+    return result === void 0 ? this : result;
+  };
+}
 
-function insertElements<TElement extends Element>(
-  elms: LikeArray<TElement>,
+// each(
+//   (
+//     "blur focus focusin focusout resize scroll click dblclick " +
+//     "mousedown mouseup mousemove mouseover mouseout mouseenter mouseleave " +
+//     "change select submit keydown keypress keyup contextmenu"
+//   ).split(" "),
+//   function (_i, name) {
+//     // Handle event binding
+//     Myjs.prototype[name] = function (fn) {
+//       return arguments.length > 0
+//         ? this.on(name, null, fn)
+//         : this.trigger(name);
+//     };
+//   }
+// );
+
+function insertElements<TElement extends Element, T = TElement>(
+  elems: LikeArray<TElement>,
   action: (item: TElement, child: any) => void,
+  callParm: (item: TElement) => T,
+  // eslint-disable-next-line functional/functional-parameters
   ...contents: readonly (
     | CustomElementAdd
     | LikeArray<CustomElementAdd>
     | ((
         index: number,
-        html: string
+        html: T
       ) => CustomElementAdd | LikeArray<CustomElementAdd>)
   )[]
 ): void {
   each(elems, (index, elem) => {
-    const elementsAdd = [];
+    const elementsAdd = new Set<any>();
 
-    each(content, (index, it) => {
+    each(contents, (index, it) => {
       if (typeof it === "function") {
-        it = it.call(elem, index, elem);
+        it = it.call(elem, index, callParm(elem));
       }
 
-      if (isLikeArray(it)) {
-        this.append(...Array.from(it));
+      if (isArrayLike(it as any)) {
+        Array.from(it as any).forEach((i) => elementsAdd.add(i));
         return;
       }
       if (typeof it === "string" && it.match(/^\s+</)) {
-        elementsAdd.push(...Array.from(createFragment(it).childNodes));
+        Array.from(createFragment(it).childNodes).forEach((i) =>
+          elementsAdd.add(i)
+        );
+
         return;
       }
 
-      if (document.documentElement.contains(it)) {
-        it = it.cloneNode(true);
+      if (document.documentElement.contains(it as any)) {
+        it = (it as any).cloneNode(true);
       }
 
-      elementsAdd.push(it);
+      elementsAdd.add(it);
     });
 
     action(elem, elementsAdd);

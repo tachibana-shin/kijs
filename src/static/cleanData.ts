@@ -4,7 +4,7 @@ import { removeData } from "./data";
 import each from "./each";
 import { off } from "./event";
 
-export default function cleanData<TElement extends HTMLElement>(
+export default function cleanData<TElement extends Element>(
   elems: LikeArray<TElement>
 ): void {
   each(elems, (index, value) => {

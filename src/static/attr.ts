@@ -35,15 +35,15 @@ const boolHook = {
   },
 };
 
-function attr<TElement = HTMLElement>(elem: TElement, name: string): string;
+function attr<TElement extends Element>(elem: TElement, name: string): string;
 
-function attr<TElement = HTMLElement>(
+function attr<TElement extends Element>(
   elem: TElement,
   name: string,
   value: string | number
 ): void;
 
-function attr<TElement extends HTMLElement>(
+function attr<TElement extends Element>(
   elem: TElement,
   name: string,
   value?: string | number
@@ -99,7 +99,7 @@ function attr<TElement extends HTMLElement>(
   return ret == null ? undefined : ret;
 }
 
-function removeAttr<TElement extends HTMLElement>(
+function removeAttr<TElement extends Element>(
   elem: TElement,
   value: string
 ): void {

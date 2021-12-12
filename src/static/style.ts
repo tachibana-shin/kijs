@@ -12,7 +12,7 @@ const cssPrefixes = ["Webkit", "Moz", "ms"],
 const clearCloneStyle = emptyStyle.backgroundClip === "content-box";
 
 // auto add prefix to style name
-function vendorPropName(name: string): string | void {
+export function vendorPropName(name: string): string | void {
   const capName = name[0].toUpperCase() + name.slice(1);
   // eslint-disable-next-line functional/no-let
   let i = cssPrefixes.length;
@@ -26,7 +26,7 @@ function vendorPropName(name: string): string | void {
   }
 }
 
-function finalPropName(name: string): string {
+export function finalPropName(name: string): string {
   const final = (cssProps as any)[name] || (vendorProps as any)[name];
 
   if (final) {
@@ -43,8 +43,8 @@ function finalPropName(name: string): string {
 export default function style<TElement extends HTMLElement>(
   elem: TElement,
   name: string,
-  value?: string,
-  extra = false
+  value?: string | number,
+  extra: string | boolean = false
 ): void | string {
   // Don't set styles on text and comment nodes
   if (!elem || elem.nodeType === 3 || elem.nodeType === 8 || !elem.style) {

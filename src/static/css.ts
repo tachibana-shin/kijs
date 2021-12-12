@@ -1,21 +1,30 @@
-import style from "./style";
-import support from "./isSupport";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable functional/no-let */
+import cssHooks from "../constants/cssHooks";
 import getStyles from "../utils/getStyles";
 
-const pnum = /[+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|)/.source;
-const rcssNum = new RegExp("^(?:([+-])=|)(" + pnum + ")([a-z%]*)$", "i");
-const rnumnonpx = new RegExp("^(" + pnum + ")(?!px)[a-z%]+$", "i");
+import camelCase from "./camelCase";
+import support from "./isSupport";
+import { finalPropName } from "./style";
 
-export function curCSS<TElement = HTMLElement>(
+const pnum = /[+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|)/.source;
+const rnumnonpx = new RegExp("^(" + pnum + ")(?!px)[a-z%]+$", "i"),
+  rcustomProp = /^--/;
+const cssNormalTransform = {
+  letterSpacing: "0",
+  fontWeight: "400",
+};
+export function curCSS<TElement extends HTMLElement>(
   elem: TElement,
   name: string,
   computed?: Record<string, any>
 ) {
-  var width,
+  let width,
     minWidth,
     maxWidth,
     ret,
-    style = elem.style;
+    // eslint-disable-next-line prefer-const
+    style = (elem as any).style;
 
   computed = computed || getStyles(elem);
 
@@ -25,23 +34,31 @@ export function curCSS<TElement = HTMLElement>(
   if (computed) {
     ret = computed.getPropertyValue(name) || computed[name];
 
-    if (ret === "" && !elem.ownerDocument.contains(elem)) {
+    if (ret === "" && !(elem as any).ownerDocument.contains(elem)) {
       ret = style(elem, name);
     }
 
-    if (!support.pixelBoxStyles() && rnumnonpx.test(ret) && on.test(name)) {
+    if (
+      !support.pixelBoxStyles() &&
+      rnumnonpx.test(ret) &&
+      rcustomProp.test(name)
+    ) {
       // Remember the original values
       width = style.width;
       minWidth = style.minWidth;
       maxWidth = style.maxWidth;
 
       // Put in the new values to get a computed value out
+      // eslint-disable-next-line functional/immutable-data
       style.minWidth = style.maxWidth = style.width = ret;
       ret = computed.width;
 
       // Revert the changed values
+      // eslint-disable-next-line functional/immutable-data
       style.width = width;
+      // eslint-disable-next-line functional/immutable-data
       style.minWidth = minWidth;
+      // eslint-disable-next-line functional/immutable-data
       style.maxWidth = maxWidth;
     }
   }
@@ -53,28 +70,30 @@ export function curCSS<TElement = HTMLElement>(
     : ret;
 }
 
-function css<TElement = HTMLElement>(
+function css<TElement extends HTMLElement>(
   elem: TElement,
   name: string
 ): string | number | void;
 
-function css<TElement = HTMLElement>(
+function css<TElement extends HTMLElement>(
   elem: TElement,
   name: string,
-  extra = false,
-  styles
+  extra: boolean | string,
+  styles?: any
 ): void;
 
-function css<TElement = HTMLElement>(
+function css<TElement extends HTMLElement>(
   elem: TElement,
   name: string,
-  extra = false,
+  extra: boolean|string = false,
   styles?: Record<string, any>
 ) {
-  var val,
+  let val,
     num,
     hooks,
+    // eslint-disable-next-line prefer-const
     origName = camelCase(name),
+    // eslint-disable-next-line prefer-const
     isCustomProp = rcustomProp.test(name);
 
   // Make sure that we're working with the right name. We don't
@@ -85,7 +104,8 @@ function css<TElement = HTMLElement>(
   }
 
   // Try prefixed name followed by the unprefixed name
-  hooks = jcssHooks[name] || cssHooks[origName];
+  // eslint-disable-next-line prefer-const
+  hooks = (cssHooks as any)[origName];
 
   // If a hook was provided get the computed value from there
   if (hooks && "get" in hooks) {
@@ -99,7 +119,7 @@ function css<TElement = HTMLElement>(
 
   // Convert "normal" to computed value
   if (val === "normal" && name in cssNormalTransform) {
-    val = cssNormalTransform[name];
+    val = (cssNormalTransform as any)[name];
   }
 
   // Make numeric if forced or a qualifier was provided and val looks numeric
