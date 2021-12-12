@@ -86,7 +86,7 @@ function offset<TElement extends HTMLElement>(
 ) {
   // Preserve chaining for setter
   if (arguments.length) {
-    each(elems, (i, elem) => {
+    each(elems, (elem, i) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       setOffset(elem, options as any, i);
     });

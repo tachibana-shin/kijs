@@ -56,7 +56,6 @@ const rcheckableType = /^(?:checkbox|radio)$/i;
 
 function kijs<TElement = HTMLElement>(
   selector: ParamNewKijs<TElement>,
-
   prevObject?: ReturnKijs<TElement>,
   context = document
 ): ReturnKijs<TElement> {
@@ -89,7 +88,7 @@ class Kijs<TElement = HTMLElement> {
 
       if (rSelector.test(selector[0])) {
         // this is query
-        document.querySelectorAll<HTMLElement>(selector).forEach((el) => {
+        this.#context.querySelectorAll<HTMLElement>(selector).forEach((el) => {
           elements.add(el as any);
         });
       } else {
@@ -108,9 +107,6 @@ class Kijs<TElement = HTMLElement> {
     Array.from(elements.values()).forEach((item) => {
       (this as any)[index++] = item;
     });
-  }
-  use(...plugins: ((kijs: this) => void)[]): void {
-    plugins.forEach(plugin => plugin(this))
   }
   each(
     callback: (
