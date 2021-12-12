@@ -2,16 +2,16 @@
 import type LikeArray from "../types/LikeArray";
 import { isArrayLike } from "../utils/is";
 
-function each<T = any>(
-  array: LikeArray<T>,
-  callback: (this: T, index: number, value: T) => void | false
-): void;
-function each<K extends string | number, V = any>(
-  object: Record<K, V>,
-  callback: (this: V, index: number, value: V) => void | false
-): void;
+function each<T = any, R = any, A = LikeArray<T>>(
+  array: A,
+  callback: (this: T, value: T, index: number, array: A) => R
+): A;
+function each<T, K extends keyof T, R = any>(
+  obj: T,
+  callback: (this: T, value: T[K], key: K, object: T) => R
+): T;
 
-function each(obj: any, callback: any): void {
+function each(obj: any, callback: any) {
   if (isArrayLike(obj)) {
     const { length } = obj;
     // eslint-disable-next-line functional/no-let
@@ -19,7 +19,7 @@ function each(obj: any, callback: any): void {
 
     // eslint-disable-next-line functional/no-loop-statement
     while (i < length) {
-      if (callback.call(obj[i], i, obj[i]) === false) {
+      if (callback.call(obj[i], obj[i], i, obj) === false) {
         break;
       }
       i++;
@@ -27,11 +27,13 @@ function each(obj: any, callback: any): void {
   } else {
     // eslint-disable-next-line functional/no-loop-statement
     for (const prop in obj) {
-      if (callback.call(obj[prop], prop, obj[prop]) === false) {
+      if (callback.call(obj[prop], obj[prop], prop, obj) === false) {
         break;
       }
     }
   }
+
+  return obj;
 }
 
 export default each;
