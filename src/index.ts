@@ -109,6 +109,9 @@ class Kijs<TElement = HTMLElement> {
       (this as any)[index++] = item;
     });
   }
+  use(...plugins: ((kijs: this) => void)[]): void {
+    plugins.forEach(plugin => plugin(this))
+  }
   each(
     callback: (
       this: TElement,
