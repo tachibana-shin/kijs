@@ -51,7 +51,7 @@ const rCRLF = /\r?\n/g,
 
 const rcheckableType = /^(?:checkbox|radio)$/i;
 
-export default function myjs<TElement extends Node>(
+function myjs<TElement extends Node>(
   selector: ParamNewMyjs<TElement>,
 
   prevObject?: ReturnMyjs<TElement>,
@@ -1429,3 +1429,5 @@ function insertElements<TElement extends Element, T = TElement>(
     action(elem, elementsAdd);
   });
 }
+
+export default myjs;

@@ -26,7 +26,7 @@ export default function position<TElement extends HTMLElement>(
     while (
       offsetParent &&
       (offsetParent === doc.body || offsetParent === doc.documentElement) &&
-      css(offsetParent, "position") === "static"
+      css(offsetParent as HTMLElement, "position") === "static"
     ) {
       offsetParent = offsetParent.parentNode;
     }
