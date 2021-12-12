@@ -106,6 +106,9 @@ class Kijs<TElement extends Node> {
       (this as any)[index++] = item;
     });
   }
+  use(...plugins: ((kijs: this) => void)[]): void {
+    plugins.forEach(plugin => plugin(this))
+  }
   each(
     callback: (this: TElement, index: number, element: TElement) => void | false
   ): this {
