@@ -33,10 +33,10 @@ type TypeOrArray<T> = T | T[] | readonly T[];
 type Node = Element | Text | Comment | Document | DocumentFragment;
 type htmlString = string;
 type Selector = string;
-type ReturnMyjs<TElement extends Node> = Myjs<TElement> & {
+type ReturnKijs<TElement extends Node> = Kijs<TElement> & {
   readonly [index: number]: TElement;
 };
-type ParamNewMyjs<TElement> =
+type ParamNewKijs<TElement> =
   | Selector
   | TypeOrArray<TElement>
   | htmlString
@@ -51,31 +51,31 @@ const rCRLF = /\r?\n/g,
 
 const rcheckableType = /^(?:checkbox|radio)$/i;
 
-function myjs<TElement extends Node>(
-  selector: ParamNewMyjs<TElement>,
+function kijs<TElement extends Node>(
+  selector: ParamNewKijs<TElement>,
 
-  prevObject?: ReturnMyjs<TElement>,
+  prevObject?: ReturnKijs<TElement>,
   context = document
-): ReturnMyjs<TElement> {
-  return new Myjs<TElement>(selector, prevObject, context) as any;
+): ReturnKijs<TElement> {
+  return new Kijs<TElement>(selector, prevObject, context) as any;
 }
 
-class Myjs<TElement extends Node> {
+class Kijs<TElement extends Node> {
   // eslint-disable-next-line functional/prefer-readonly-type
   length = 0;
-  readonly #prevObject: ReturnMyjs<TElement> | undefined;
+  readonly #prevObject: ReturnKijs<TElement> | undefined;
   readonly #context: Document;
-  get myjs(): true {
+  get kijs(): true {
     return true;
   }
   constructor(
-    selector: ParamNewMyjs<TElement>,
-    prevObject?: ReturnMyjs<TElement>,
+    selector: ParamNewKijs<TElement>,
+    prevObject?: ReturnKijs<TElement>,
     context = document
   ) {
     this.#prevObject = prevObject;
     this.#context = context;
-    if (selector instanceof Myjs) {
+    if (selector instanceof Kijs) {
       return selector as any;
     }
 
@@ -132,7 +132,7 @@ class Myjs<TElement extends Node> {
       index: number,
       element: TElement
     ) => boolean | void
-  ): ReturnMyjs<TElement> {
+  ): ReturnKijs<TElement> {
     const elements: any = [];
     this.each((index, value) => {
       if (callback.call(value, index, value)) {
@@ -140,7 +140,7 @@ class Myjs<TElement extends Node> {
       }
     });
 
-    return myjs(elements, this as any);
+    return kijs(elements, this as any);
   }
   toArray(): readonly TElement[] {
     return Array.from(this as any);
@@ -148,35 +148,35 @@ class Myjs<TElement extends Node> {
   get(index: number): TElement | void {
     return (this as any)[index < -1 ? this.length + index : index];
   }
-  pushStack(elements: LikeArray<TElement>): ReturnMyjs<TElement> {
-    return myjs(Array.from(elements), this as any);
+  pushStack(elements: LikeArray<TElement>): ReturnKijs<TElement> {
+    return kijs(Array.from(elements), this as any);
   }
-  slice(start: number, end?: number): ReturnMyjs<TElement> {
-    return myjs(
+  slice(start: number, end?: number): ReturnKijs<TElement> {
+    return kijs(
       Array.prototype.slice.call(this as any, start, end),
       this as any
     );
   }
-  eq(index: number): ReturnMyjs<TElement> | void {
+  eq(index: number): ReturnKijs<TElement> | void {
     if (this.get(index)) {
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      return myjs(this.get(index)!, this as any);
+      return kijs(this.get(index)!, this as any);
     }
   }
-  first(): ReturnMyjs<TElement> | void {
+  first(): ReturnKijs<TElement> | void {
     return this.eq(0);
   }
-  last(): ReturnMyjs<TElement> | void {
+  last(): ReturnKijs<TElement> | void {
     return this.eq(-1);
   }
-  even(): ReturnMyjs<TElement> {
+  even(): ReturnKijs<TElement> {
     return this.filter((index) => index % 2 === 0);
   }
-  odd(): ReturnMyjs<TElement> {
+  odd(): ReturnKijs<TElement> {
     return this.filter((index) => index % 2 !== 0);
   }
-  end(): ReturnMyjs<TElement> {
-    return this.#prevObject || myjs<TElement>([]);
+  end(): ReturnKijs<TElement> {
+    return this.#prevObject || kijs<TElement>([]);
   }
   readonly push = Array.prototype.push;
   readonly sort = Array.prototype.sort;
@@ -184,7 +184,7 @@ class Myjs<TElement extends Node> {
   readonly extend = extend as unknown as (
     ...src: readonly LikeArray<TElement>[]
   ) => this;
-  find<T extends Element>(selector: ParamNewMyjs<T>): ReturnMyjs<T> {
+  find<T extends Element>(selector: ParamNewKijs<T>): ReturnKijs<T> {
     if (typeof selector === "string") {
       const elements = new Set<T>();
       this.each((index, value) => {
@@ -193,10 +193,10 @@ class Myjs<TElement extends Node> {
         }
       });
 
-      return myjs(Array.from(elements.values()), this as any);
+      return kijs(Array.from(elements.values()), this as any);
     }
 
-    return myjs(selector).filter((index, value) => {
+    return kijs(selector).filter((index, value) => {
       // eslint-disable-next-line functional/no-let
       let { length } = this;
 
@@ -207,10 +207,10 @@ class Myjs<TElement extends Node> {
       }
     });
   }
-  not(selector: ParamNewMyjs<TElement>): ReturnMyjs<TElement>;
+  not(selector: ParamNewKijs<TElement>): ReturnKijs<TElement>;
   not(
     filter: (this: TElement, index: number, element: TElement) => void | boolean
-  ): ReturnMyjs<TElement>;
+  ): ReturnKijs<TElement>;
   not(selector: any) {
     if (typeof selector === "function") {
       return this.filter((index, value) => {
@@ -218,16 +218,16 @@ class Myjs<TElement extends Node> {
       });
     }
 
-    const elements = Array.from(myjs(selector)); /* free */
+    const elements = Array.from(kijs(selector)); /* free */
 
     return this.filter((index, value) => {
       return elements.includes(value) === false;
     });
   }
-  is(selector: ParamNewMyjs<TElement>): ReturnMyjs<TElement>;
+  is(selector: ParamNewKijs<TElement>): ReturnKijs<TElement>;
   is(
     filter: (this: TElement, index: number, element: TElement) => void | boolean
-  ): ReturnMyjs<TElement>;
+  ): ReturnKijs<TElement>;
   is(selector: any) {
     if (typeof selector === "function") {
       return this.filter(selector);
@@ -239,15 +239,15 @@ class Myjs<TElement extends Node> {
       });
     }
 
-    const elements = Array.from(myjs(selector)); /* free */
+    const elements = Array.from(kijs(selector)); /* free */
 
     return this.filter((index, value) => {
       return elements.includes(value);
     });
   }
-  readonly init = myjs;
-  has(element: ParamNewMyjs<TElement>): ReturnMyjs<TElement> {
-    const elements = myjs(element);
+  readonly init = kijs;
+  has(element: ParamNewKijs<TElement>): ReturnKijs<TElement> {
+    const elements = kijs(element);
 
     return this.filter((index, value) => {
       // eslint-disable-next-line functional/no-let
@@ -260,7 +260,7 @@ class Myjs<TElement extends Node> {
       }
     });
   }
-  closest<T extends Element>(selector: ParamNewMyjs<T>): ReturnMyjs<T> {
+  closest<T extends Element>(selector: ParamNewKijs<T>): ReturnKijs<T> {
     if (typeof selector === "string") {
       const elements = new Set<T>();
 
@@ -273,10 +273,10 @@ class Myjs<TElement extends Node> {
         }
       });
 
-      return myjs(Array.from(elements.values()), this as any);
+      return kijs(Array.from(elements.values()), this as any);
     }
 
-    return myjs(selector).filter((index, value) => {
+    return kijs(selector).filter((index, value) => {
       // eslint-disable-next-line functional/no-let
       let ok = false;
       this.each((index, v: any) => {
@@ -294,7 +294,7 @@ class Myjs<TElement extends Node> {
       return ok;
     });
   }
-  index(selector?: string | ReturnMyjs<TElement> | TElement): number {
+  index(selector?: string | ReturnKijs<TElement> | TElement): number {
     if (selector === undefined) {
       return (this as any)[0]?.parentNode
         ? this.first()?.prevAll().length || -1
@@ -302,21 +302,21 @@ class Myjs<TElement extends Node> {
     }
 
     if (typeof selector === "string") {
-      return Array.prototype.indexOf.call(myjs(selector), (this as any)[0]);
+      return Array.prototype.indexOf.call(kijs(selector), (this as any)[0]);
     }
 
     return Array.prototype.indexOf.call(
       this as any,
-      selector instanceof Myjs ? selector[0] : selector
+      selector instanceof Kijs ? selector[0] : selector
     );
   }
-  add(selector: ParamNewMyjs<TElement>): ReturnMyjs<TElement> {
-    return this.pushStack(myjs(selector));
+  add(selector: ParamNewKijs<TElement>): ReturnKijs<TElement> {
+    return this.pushStack(kijs(selector));
   }
-  addBack(selector: ParamNewMyjs<TElement>): ReturnMyjs<TElement> {
-    return myjs(selector).pushStack(this.toArray());
+  addBack(selector: ParamNewKijs<TElement>): ReturnKijs<TElement> {
+    return kijs(selector).pushStack(this.toArray());
   }
-  parent<T extends Element>(selector?: string): ReturnMyjs<T> {
+  parent<T extends Element>(selector?: string): ReturnKijs<T> {
     const elements = new Set<T>();
 
     if (selector === void 0) {
@@ -336,9 +336,9 @@ class Myjs<TElement extends Node> {
       });
     }
 
-    return myjs(Array.from(elements.values()), this as any);
+    return kijs(Array.from(elements.values()), this as any);
   }
-  parents<T extends Element>(selector?: string): ReturnMyjs<T> {
+  parents<T extends Element>(selector?: string): ReturnKijs<T> {
     const elements = new Set<T>();
 
     if (selector === void 0) {
@@ -357,13 +357,13 @@ class Myjs<TElement extends Node> {
       });
     }
 
-    return myjs(Array.from(elements.values()));
+    return kijs(Array.from(elements.values()));
   }
   parentsUntil<T extends Element>(
-    excludeSelector?: ParamNewMyjs<T>,
+    excludeSelector?: ParamNewKijs<T>,
     selector?: string
-  ): ReturnMyjs<TElement> {
-    const exclude = myjs(excludeSelector || []).toArray();
+  ): ReturnKijs<TElement> {
+    const exclude = kijs(excludeSelector || []).toArray();
     const elements = new Set<TElement>();
 
     if (selector === void 0) {
@@ -388,9 +388,9 @@ class Myjs<TElement extends Node> {
       });
     }
 
-    return myjs(Array.from(elements.values()));
+    return kijs(Array.from(elements.values()));
   }
-  next<T extends Element>(selector?: string): ReturnMyjs<T> {
+  next<T extends Element>(selector?: string): ReturnKijs<T> {
     const elements = new Set<T>();
 
     if (selector === void 0) {
@@ -410,9 +410,9 @@ class Myjs<TElement extends Node> {
       });
     }
 
-    return myjs(Array.from(elements.values()), this as any);
+    return kijs(Array.from(elements.values()), this as any);
   }
-  prev<T extends Element>(selector?: string): ReturnMyjs<T> {
+  prev<T extends Element>(selector?: string): ReturnKijs<T> {
     const elements = new Set<T>();
 
     if (selector === void 0) {
@@ -432,9 +432,9 @@ class Myjs<TElement extends Node> {
       });
     }
 
-    return myjs(Array.from(elements.values()), this as any);
+    return kijs(Array.from(elements.values()), this as any);
   }
-  nextAll<T extends Element>(selector?: string): ReturnMyjs<T> {
+  nextAll<T extends Element>(selector?: string): ReturnKijs<T> {
     const elements = new Set<T>();
 
     if (selector === void 0) {
@@ -453,9 +453,9 @@ class Myjs<TElement extends Node> {
       });
     }
 
-    return myjs(Array.from(elements.values()), this as any);
+    return kijs(Array.from(elements.values()), this as any);
   }
-  prevAll<T extends Element>(selector?: string): ReturnMyjs<T> {
+  prevAll<T extends Element>(selector?: string): ReturnKijs<T> {
     const elements = new Set<T>();
 
     if (selector === void 0) {
@@ -474,13 +474,13 @@ class Myjs<TElement extends Node> {
       });
     }
 
-    return myjs(Array.from(elements.values()), this as any);
+    return kijs(Array.from(elements.values()), this as any);
   }
   nextUntil<T extends Element>(
-    selectorExclude?: ParamNewMyjs<T>,
+    selectorExclude?: ParamNewKijs<T>,
     selector?: string
-  ): ReturnMyjs<TElement> {
-    const exclude = myjs(selectorExclude || []).toArray();
+  ): ReturnKijs<TElement> {
+    const exclude = kijs(selectorExclude || []).toArray();
     const elements = new Set<TElement>();
 
     if (selector === void 0) {
@@ -505,13 +505,13 @@ class Myjs<TElement extends Node> {
       });
     }
 
-    return myjs(Array.from(elements.values()), this as any);
+    return kijs(Array.from(elements.values()), this as any);
   }
   prevUntil<R extends Element, T extends Element>(
-    selectorExclude?: ParamNewMyjs<T>,
+    selectorExclude?: ParamNewKijs<T>,
     selector?: string
-  ): ReturnMyjs<R> {
-    const exclude = myjs(selectorExclude || []).toArray();
+  ): ReturnKijs<R> {
+    const exclude = kijs(selectorExclude || []).toArray();
     const elements = new Set<R>();
 
     if (selector === void 0) {
@@ -536,9 +536,9 @@ class Myjs<TElement extends Node> {
       });
     }
 
-    return myjs(Array.from(elements.values()), this as any);
+    return kijs(Array.from(elements.values()), this as any);
   }
-  siblings<T extends Element>(selector?: string): ReturnMyjs<T> {
+  siblings<T extends Element>(selector?: string): ReturnKijs<T> {
     const elements = new Set<T>();
 
     if (selector === void 0) {
@@ -565,9 +565,9 @@ class Myjs<TElement extends Node> {
       });
     }
 
-    return myjs(Array.from(elements.values()), this as any);
+    return kijs(Array.from(elements.values()), this as any);
   }
-  children<T extends Element>(selector?: string): ReturnMyjs<T> {
+  children<T extends Element>(selector?: string): ReturnKijs<T> {
     const elements = new Set<T>();
 
     if (selector === void 0) {
@@ -584,9 +584,9 @@ class Myjs<TElement extends Node> {
       });
     }
 
-    return myjs(Array.from(elements.values()), this as any);
+    return kijs(Array.from(elements.values()), this as any);
   }
-  contents<T extends Element>(): ReturnMyjs<T> {
+  contents<T extends Element>(): ReturnKijs<T> {
     const elements = new Set<T>();
 
     this.each((index, value: any) => {
@@ -606,7 +606,7 @@ class Myjs<TElement extends Node> {
       value.childNodes.forEach((i: T) => elements.add(i));
     });
 
-    return myjs(Array.from(elements.values()), this as any);
+    return kijs(Array.from(elements.values()), this as any);
   }
   readonly ready = ready;
   // eslint-disable-next-line @typescript-eslint/ban-types
@@ -835,8 +835,8 @@ class Myjs<TElement extends Node> {
   clone(
     dataAndEvent = false,
     deepDataAndEvent: boolean = dataAndEvent
-  ): ReturnMyjs<TElement> {
-    return myjs(
+  ): ReturnKijs<TElement> {
+    return kijs(
       this.map((_index, elem: any) =>
         clone(elem, dataAndEvent, deepDataAndEvent)
       )
@@ -878,24 +878,24 @@ class Myjs<TElement extends Node> {
 
     return this;
   }
-  appendTo(selector: ParamNewMyjs<Element>): this {
-    myjs(selector).append(this as any);
+  appendTo(selector: ParamNewKijs<Element>): this {
+    kijs(selector).append(this as any);
     return this;
   }
-  prependTo(selector: ParamNewMyjs<Element>): this {
-    myjs(selector).prepend(this as any);
+  prependTo(selector: ParamNewKijs<Element>): this {
+    kijs(selector).prepend(this as any);
     return this;
   }
-  insertAfter(selector: ParamNewMyjs<Element>): this {
-    myjs(selector).after(this as any);
+  insertAfter(selector: ParamNewKijs<Element>): this {
+    kijs(selector).after(this as any);
     return this;
   }
-  insertBefore(selector: ParamNewMyjs<Element>): this {
-    myjs(selector).before(this as any);
+  insertBefore(selector: ParamNewKijs<Element>): this {
+    kijs(selector).before(this as any);
     return this;
   }
-  replaceAll(selector: ParamNewMyjs<Element>): this {
-    myjs(selector).replaceWith(this as any);
+  replaceAll(selector: ParamNewKijs<Element>): this {
+    kijs(selector).replaceWith(this as any);
     return this;
   }
   css<Prop extends keyof CSSStyleDeclaration>(
@@ -1075,7 +1075,7 @@ class Myjs<TElement extends Node> {
 
       return (
         elem.name &&
-        !myjs(elem).is(":disabled") &&
+        !kijs(elem).is(":disabled") &&
         rsubmittable.test(elem.nodeName) &&
         !rsubmitterTypes.test(type) &&
         (elem.checked || !rcheckableType.test(type))
@@ -1106,7 +1106,7 @@ class Myjs<TElement extends Node> {
       .filter(Boolean) as any;
   }
 
-  wrapAll(html: ParamNewMyjs<Element>): this {
+  wrapAll(html: ParamNewKijs<Element>): this {
     // eslint-disable-next-line functional/no-let
     let wrap;
 
@@ -1117,7 +1117,7 @@ class Myjs<TElement extends Node> {
 
       // The elements to wrap the target around
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      wrap = myjs(html, this as any, (this as any)[0].ownerDocument)
+      wrap = kijs(html, this as any, (this as any)[0].ownerDocument)
         .eq(0)!
         .clone(true);
 
@@ -1125,7 +1125,7 @@ class Myjs<TElement extends Node> {
         wrap.insertBefore((this as any)[0]);
       }
 
-      myjs(
+      kijs(
         wrap.map((i, elem) => {
           while (elem.firstElementChild) {
             elem = elem.firstElementChild;
@@ -1139,17 +1139,17 @@ class Myjs<TElement extends Node> {
     return this;
   }
 
-  wrapInner<T extends Element>(html: ParamNewMyjs<T>): this {
+  wrapInner<T extends Element>(html: ParamNewKijs<T>): this {
     if (isFunction(html)) {
       this.each(function (i, e) {
-        myjs(e).wrapInner(html.call(this as any, i));
+        kijs(e).wrapInner(html.call(this as any, i));
       });
 
       return this;
     }
 
     this.each(function (i, e) {
-      const self = myjs(e),
+      const self = kijs(e),
         contents = self.contents();
 
       if (contents.length) {
@@ -1164,13 +1164,13 @@ class Myjs<TElement extends Node> {
 
   wrap<T extends Element>(
     html:
-      | ParamNewMyjs<T>
-      | ((index: number, element: TElement) => ParamNewMyjs<T>)
+      | ParamNewKijs<T>
+      | ((index: number, element: TElement) => ParamNewKijs<T>)
   ): this {
     const htmlIsFunction = isFunction(html);
 
     this.each(function (i) {
-      myjs(this as any).wrapAll(
+      kijs(this as any).wrapAll(
         htmlIsFunction ? html.call(this as any, i, this) : html
       );
     });
@@ -1182,7 +1182,7 @@ class Myjs<TElement extends Node> {
     this.parent(selector)
       .not("body")
       .each((i, e) => {
-        myjs(e).replaceWith(e.childNodes as any);
+        kijs(e).replaceWith(e.childNodes as any);
       });
     return this;
   }
@@ -1321,7 +1321,7 @@ function callSizeof(
     "": "outer" + name,
   }[defaultExtra];
 
-  return function (this: ReturnMyjs<Element>, value: number, margin = false) {
+  return function (this: ReturnKijs<Element>, value: number, margin = false) {
     const extra = !!defaultExtra || (margin === true ? "margin" : "border");
 
     // eslint-disable-next-line functional/no-let
@@ -1377,7 +1377,7 @@ function callSizeof(
 //   ).split(" "),
 //   function (_i, name) {
 //     // Handle event binding
-//     Myjs.prototype[name] = function (fn) {
+//     Kijs.prototype[name] = function (fn) {
 //       return arguments.length > 0
 //         ? this.on(name, null, fn)
 //         : this.trigger(name);
@@ -1430,4 +1430,4 @@ function insertElements<TElement extends Element, T = TElement>(
   });
 }
 
-export default myjs;
+export default kijs;

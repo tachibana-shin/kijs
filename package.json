@@ -1,18 +1,18 @@
 {
-  "name": "myjs",
-  "version": "1.0.0",
-  "main": "dist/myjs.umd.js",
+  "name": "kijs",
+  "version": "0.0.1",
+  "main": "dist/kijs.umd.js",
   "exports": {
     ".": {
-      "module": "./dist/myjs.esm.js",
-      "require": "./dist/myjs.umd.js",
-      "import": "./dist/myjs.esm.js"
+      "module": "./dist/kijs.esm.js",
+      "require": "./dist/kijs.umd.js",
+      "import": "./dist/kijs.esm.js"
     },
     "./": "./"
   },
-  "module": "dist/myjs.esm.js",
-  "unpkg": "dist/myjs.esm.min.js",
-  "types": "dist/myjs.d.ts",
+  "module": "dist/kijs.esm.js",
+  "unpkg": "dist/kijs.esm.min.js",
+  "types": "dist/kijs.d.ts",
   "files": [
     "dist"
   ],
@@ -57,11 +57,11 @@
   "author": "Tachibana Shin",
   "repository": {
     "type": "git",
-    "url": "git://github.com/tachibana-shin/myjs.git"
+    "url": "git://github.com/tachibana-shin/kijs.git"
   },
-  "homepage": "https://tachibana-shin.github.io/myjs",
+  "homepage": "https://tachibana-shin.github.io/kijs",
   "keywords": [
-    "myjs"
+    "kijs"
   ],
   "dependencies": {}
 }
