@@ -35,7 +35,7 @@ type TypeOrArray<T> = T | T[] | readonly T[] | LikeArray<T>;
 type htmlString = string;
 type Selector = keyof HTMLElementTagNameMap & keyof SVGElementTagNameMap[K];
 type ReturnKijs<TElement = Node> = Kijs<TElement> & {
-  readonly [index: number]: TElement!;
+  readonly [index: number]: !TElement;
 };
 type ParamNewKijs<TElement> =
   | Selector
@@ -1297,6 +1297,27 @@ class Kijs<TElement = HTMLElement> {
     this
   ) as FnSize<this>;
   readonly outerWidth = (callSizeof("width") as any).bind(this) as FnSize<this>;
+
+  blur = generateListenerEvent("blur").bind(this)
+  focus = generateListenerEvent("blur").bind(this)
+  focusin = generateListenerEvent("blur").bind(this)
+  focusout = generateListenerEvent("blur").bind(this)
+  resize = generateListenerEvent("blur").bind(this)
+  scroll = generateListenerEvent("blur").bind(this)
+  click = generateListenerEvent("blur").bind(this)
+  dblclick = generateListenerEvent("blur").bind(this)
+  mousedown = generateListenerEvent("blur").bind(this)
+  mouseup = generateListenerEvent("blur").bind(this)
+  mouseover = generateListenerEvent("blur").bind(this)
+  mouseenter = generateListenerEvent("blur").bind(this)
+  mouseleave = generateListenerEvent("blur").bind(this)
+  change = generateListenerEvent("blur").bind(this)
+  select = generateListenerEvent("blur").bind(this)
+  submit = generateListenerEvent("blur").bind(this)
+  keydown = generateListenerEvent("blur").bind(this)
+  keypress = generateListenerEvent("blur").bind(this)
+  keyup = generateListenerEvent("blur").bind(this)
+  contextmenu = generateListenerEvent("blur").bind(this)
 }
 
 type FnSize<T> = {
@@ -1362,6 +1383,40 @@ function callSizeof(
   };
 }
 
+type Events = {
+  blur: Event;
+  focus: FocusEvent;
+  focusin: FocusEvent;
+  focusout: FocusEvent;
+  resize: UIEvent;
+  scroll: Event;
+  click: MouseEvent;
+  dblclick: MouseEvent;
+  mousedown: MouseEvent;
+  mouseup: MouseEvent;
+  mouseover: MouseEvent;
+  mouseenter: MouseEvent;
+  mouseleave: MouseEvent;
+  change: Event;
+  select: UIEvent | Event;
+  submit: SubmitEvent;
+  keydown: KeyboardEvent;
+  keypress: KeyboardEvent;
+  keyup: KeyboardEvent;
+  contextmenu: MouseEvent;
+};
+
+type EventOf<T extends keyof Events> = Events[T];
+
+function generateListenerEvent<T extends keyof Events>(
+  name: T
+): {
+  (this: ReturnKijs, callback?: (event: EventOf<T>) => void): void;
+} {
+  return function (callback) {
+    return callback === void 0 ? this.trigger(name) : this.on(name, callback);
+  };
+}
 // each(
 //   (
 //     "blur focus focusin focusout resize scroll click dblclick " +
