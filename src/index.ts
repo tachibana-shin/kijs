@@ -15,8 +15,6 @@ import setData, { removeData } from "./static/data";
 import each from "./static/each";
 import { off, on, one, weakCacheEvent } from "./static/event";
 import extend from "./static/extend";
-import filter from "./static/filter";
-import map from "./static/map";
 import offset from "./static/offset";
 import pageOffset from "./static/pageOffset";
 import position from "./static/position";
@@ -32,19 +30,21 @@ import getStyles from "./utils/getStyles";
 import { isArrayLike, isFunction, isObject } from "./utils/is";
 
 // eslint-disable-next-line functional/prefer-readonly-type
-type TypeOrArray<T> = T | T[] | readonly T[];
+type TypeOrArray<T> = T | T[] | readonly T[] | LikeArray<T>;
 // type Node = Element | Text | Comment | Document | DocumentFragment;
 type htmlString = string;
-type Selector = string;
+type Selector = keyof HTMLElementTagNameMap & keyof SVGElementTagNameMap[K];
 type ReturnKijs<TElement = Node> = Kijs<TElement> & {
-  readonly [index: number]: TElement;
+  readonly [index: number]: TElement!;
 };
 type ParamNewKijs<TElement> =
   | Selector
   | TypeOrArray<TElement>
   | htmlString
   | Node
-  | Window;
+  | Window
+  | void
+  | null;
 type CustomElementAdd = string | Element | Text;
 
 const rSelector = /[a-zA-Z_]|\.|#/;
@@ -67,9 +67,7 @@ class Kijs<TElement = HTMLElement> {
   length = 0;
   readonly #prevObject: ReturnKijs<TElement> | undefined;
   readonly #context: Document;
-  get kijs(): true {
-    return true;
-  }
+  readonly kijs = true;
   constructor(
     selector: ParamNewKijs<TElement>,
     prevObject?: ReturnKijs<TElement>,
@@ -128,7 +126,7 @@ class Kijs<TElement = HTMLElement> {
       kijs: this
     ) => T
   ): ReturnKijs<T> {
-    return kijs(map(this, callback));
+    return kijs(Array.prototype.map.call(this, callback));
   }
   filter(
     callback: (
@@ -138,16 +136,16 @@ class Kijs<TElement = HTMLElement> {
       kijs: this
     ) => boolean | void
   ): ReturnKijs<TElement> {
-    return kijs(filter(this, callback));
+    return kijs(Array.prototype.filter.call(this, callback));
   }
-  toArray(): readonly TElement[] {
+  toArray(): TElement[] {
     return Array.from(this as any);
   }
   get(index: number): TElement | void {
     return (this as any)[index < -1 ? this.length + index : index];
   }
   pushStack(elements: LikeArray<TElement>): ReturnKijs<TElement> {
-    return kijs(Array.from(elements), this as any);
+    return kijs(elements, this as any);
   }
   slice(start: number, end?: number): ReturnKijs<TElement> {
     return kijs(
@@ -155,16 +153,13 @@ class Kijs<TElement = HTMLElement> {
       this as any
     );
   }
-  eq(index: number): ReturnKijs<TElement> | void {
-    if (this.get(index)) {
-      // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-      return kijs(this.get(index)!, this as any);
-    }
+  eq(index: number): ReturnKijs<TElement> {
+    return kijs(this.get(index), this as any);
   }
-  first(): ReturnKijs<TElement> | void {
+  first(): ReturnKijs<TElement> {
     return this.eq(0);
   }
-  last(): ReturnKijs<TElement> | void {
+  last(): ReturnKijs<TElement> {
     return this.eq(-1);
   }
   even(): ReturnKijs<TElement> {
@@ -173,8 +168,8 @@ class Kijs<TElement = HTMLElement> {
   odd(): ReturnKijs<TElement> {
     return this.filter((_el, index) => index % 2 !== 0);
   }
-  end(): ReturnKijs<TElement> {
-    return this.#prevObject || kijs<TElement>([]);
+  end() {
+    return this.#prevObject || kijs();
   }
   readonly push = Array.prototype.push;
   readonly sort = Array.prototype.sort;
@@ -182,7 +177,7 @@ class Kijs<TElement = HTMLElement> {
   readonly extend = extend as unknown as (
     ...src: readonly LikeArray<TElement>[]
   ) => this;
-  find<T extends Element>(selector: ParamNewKijs<T>): ReturnKijs<T> {
+  find<T = Element>(selector: ParamNewKijs<T>): ReturnKijs<T> {
     if (typeof selector === "string") {
       const elements = new Set<T>();
       this.each((value) => {
@@ -295,7 +290,7 @@ class Kijs<TElement = HTMLElement> {
   index(selector?: string | ReturnKijs<TElement> | TElement): number {
     if (selector === undefined) {
       return (this as any)[0]?.parentNode
-        ? this.first()?.prevAll().length || -1
+        ? this.first().prevAll().length || -1
         : -1;
     }
 
@@ -1118,7 +1113,7 @@ class Kijs<TElement = HTMLElement> {
       // The elements to wrap the target around
       // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
       wrap = kijs(html, this as any, (this as any)[0].ownerDocument)
-        .eq(0)!
+        .eq(0)
         .clone(true);
 
       if ((this as any)[0].parentNode) {
