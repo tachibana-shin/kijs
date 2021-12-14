@@ -35,7 +35,7 @@ type TypeOrArray<T> = T | T[] | readonly T[] | LikeArray<T>;
 type htmlString = string;
 type Selector = keyof HTMLElementTagNameMap & keyof SVGElementTagNameMap[K];
 type ReturnKijs<TElement = Node> = Kijs<TElement> & {
-  readonly [index: number]: !TElement;
+  readonly [index: number]: TElement!;
 };
 type ParamNewKijs<TElement> =
   | Selector
