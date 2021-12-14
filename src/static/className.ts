@@ -34,7 +34,7 @@ function addClass<TElement extends HTMLElement>(
     | ((index: number, currentClass: string) => string | readonly string[])
 ): void {
   if (isFunction(value)) {
-    each(elems, (j, elem) => {
+    each(elems, (elem, j) => {
       addClass([elem], value.call(elem, j, getClass(elem)));
     });
 
@@ -44,13 +44,13 @@ function addClass<TElement extends HTMLElement>(
   const classes = classesToArray(value);
 
   if (classes.length) {
-    each(elems, (i, elem) => {
+    each(elems, (elem) => {
       const curValue = getClass(elem);
       // eslint-disable-next-line functional/no-let
       let cur = elem.nodeType === 1 && " " + stripAndCollapse(curValue) + " ";
 
       if (cur) {
-        each(classes, (i, clazz) => {
+        each(classes, ( clazz) => {
           if ((cur as string).includes(" " + clazz + " ") === false) {
             cur += clazz + " ";
           }
@@ -74,7 +74,7 @@ function removeClass<TElement extends HTMLElement>(
     | ((index: number, currentClass: string) => string | readonly string[])
 ): void {
   if (isFunction(value)) {
-    each(elems, (j, elem) => {
+    each(elems, (elem, j) => {
       removeClass([elem], value.call(elem, j, getClass(elem)));
     });
 
@@ -82,21 +82,21 @@ function removeClass<TElement extends HTMLElement>(
   }
 
   if (value === void 0) {
-    attr(elems, "class", "");
+    each(elems, (el) => attr(el, "class", ""));
     return;
   }
 
   const classes = classesToArray(value);
 
   if (classes.length) {
-    each(elems, (i, elem) => {
+    each(elems, (elem) => {
       const curValue = getClass(elem);
 
       // eslint-disable-next-line functional/no-let
       let cur = elem.nodeType === 1 && " " + stripAndCollapse(curValue) + " ";
 
       if (cur) {
-        each(classes, (i, clazz) => {
+        each(classes, (clazz) => {
           // Remove *all* instances
           // eslint-disable-next-line functional/no-loop-statement
           while ((cur as string).includes(" " + clazz + " ")) {
@@ -153,7 +153,7 @@ function toggleClass<TElement extends HTMLElement>(
   }
 
   if (isFunction(value)) {
-    each(elems, (i, elem) => {
+    each(elems, (elem, i) => {
       toggleClass(
         [elem],
         // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -166,9 +166,9 @@ function toggleClass<TElement extends HTMLElement>(
     return;
   }
 
-  each(elems, (i, elem) => {
+  each(elems, (elem) => {
     if (isValidValue) {
-      each(classesToArray(value), (i, className) => {
+      each(classesToArray(value), (className) => {
         if (hasClass([elem], className)) {
           removeClass([elem], className);
         } else {

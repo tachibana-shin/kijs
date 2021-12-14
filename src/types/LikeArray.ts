@@ -1,10 +1,11 @@
+/* eslint-disable functional/prefer-readonly-type */
 type LikeArray<T> = {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  readonly [key: string]: any;
+  [key: string]: any;
 } & {
-  readonly [index: number]: T;
+  [index: number]: T;
 } & {
-  readonly length: number;
+  length: number;
 };
 
 export default LikeArray;

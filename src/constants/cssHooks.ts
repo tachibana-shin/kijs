@@ -2,7 +2,7 @@ import { curCSS } from "../static/css";
 
 export default {
   opacity: {
-    get<TElement = HTMLElement>(
+    get<TElement extends HTMLElement>(
       elem: TElement,
       computed: boolean
     ): string | void {

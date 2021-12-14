@@ -7,7 +7,7 @@ import { off } from "./event";
 export default function cleanData<TElement extends Element>(
   elems: LikeArray<TElement>
 ): void {
-  each(elems, (index, value) => {
+  each(elems, (value) => {
     removeData(value);
   });
   off(elems);

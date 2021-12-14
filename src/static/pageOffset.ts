@@ -35,7 +35,7 @@ function pageOffset(
     return win ? win[props[prop]] : elems[0][prop];
   }
 
-  each(elems, (i, elem) => {
+  each(elems, (elem) => {
     if (win) {
       const top = prop === "scrollTop";
       win.scrollTo(!top ? val : win.pageXOffset, top ? val : win.pageYOffset);

@@ -62,7 +62,7 @@ function on<N extends string, TElement extends Element>(
 
   weakCacheFunctionEvent.set(callback, handler);
 
-  each(elements, (index, value) => {
+  each(elements, (value) => {
     if (weakCacheEvent.has(value) === false) {
       weakCacheEvent.set(value, new Map());
     }
@@ -144,7 +144,7 @@ function off<N extends string, E extends Event, TElement extends Element>(
   callback = (weakCacheFunctionEvent.get(callback!)! || callback!) as any;
 
   if (callback !== undefined) {
-    each(elements, (index, value) => {
+    each(elements, (value) => {
       weakCacheEvent.get(value)?.set(
         name,
         new Set(
@@ -167,7 +167,7 @@ function off<N extends string, E extends Event, TElement extends Element>(
   }
 
   if (name !== undefined) {
-    each(elements, (index, value) => {
+    each(elements, (value) => {
       weakCacheEvent
         .get(value)
         ?.get(name)
@@ -180,7 +180,7 @@ function off<N extends string, E extends Event, TElement extends Element>(
     return;
   }
 
-  each(elements, (index, value) => {
+  each(elements, (value) => {
     weakCacheEvent.get(value)?.forEach((list, name) => {
       list.forEach((cb) => {
         (value as any).removeEventListener(name, cb.handler);

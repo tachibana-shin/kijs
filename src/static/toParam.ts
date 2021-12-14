@@ -17,7 +17,7 @@ export default function toParam(
     isArray = Array.isArray(dstr);
 
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  each(data as any, (key, val) => {
+  each(data as any, (val, key) => {
     val = isFunction(val) ? val() : val;
 
     if (isArray) {

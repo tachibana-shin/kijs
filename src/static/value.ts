@@ -133,7 +133,7 @@ function $$value<TElement extends HTMLElement>(
   // eslint-disable-next-line prefer-const
   valueIsFunction = isFunction(val);
 
-  each(elems, (i, elem) => {
+  each(elems, (elem, i) => {
     // eslint-disable-next-line functional/no-let
     let $val;
 

@@ -22,7 +22,7 @@ function access<TElement = HTMLElement, Return = any>(
   if (modeReturn === true) {
     // eslint-disable-next-line functional/no-let
     let result: Return;
-    each(elems, (i, elem) => {
+    each(elems, (elem, i) => {
       const r = callback(elem, i);
 
       if (result === void 0) {
@@ -39,7 +39,7 @@ function access<TElement = HTMLElement, Return = any>(
     //@ts-ignore
     return result;
   } else {
-    each(elems, (i, elem) => {
+    each(elems, (elem, i) => {
       callback(elem, i);
     });
 
