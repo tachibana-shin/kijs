@@ -35,14 +35,7 @@ type TypeOrArray<T> = T | T[] | readonly T[] | LikeArray<T>;
 type htmlString = string;
 type Selector = keyof HTMLElementTagNameMap & keyof SVGElementTagNameMap;
 
-type ReturnKijs<TElement = Node> = Kijs<TElement> & {
-  readonly [index: number]: TElement extends void
-    ? HTMLElement
-    : TElement extends null
-    ? HTMLElement
-    : TElement;
-};
-type ParamNewKijs<TElement> =
+type ParamNewKijs<TElement = HTMLElement> =
   | Selector
   | TypeOrArray<TElement>
   | htmlString
@@ -61,21 +54,23 @@ const rcheckableType = /^(?:checkbox|radio)$/i;
 
 function kijs<TElement = HTMLElement>(
   selector: ParamNewKijs<TElement>,
-  prevObject?: ReturnKijs<TElement>,
+  prevObject?: Kijs,
   context = document
-): ReturnKijs<TElement> {
-  return new Kijs<TElement>(selector, prevObject, context) as any;
+) {
+  return new Kijs<TElement>(selector, prevObject, context);
 }
 
-class Kijs<TElement = HTMLElement> {
+class Kijs<TElement = HTMLElement, T = HTMLElement> {
+  // eslint-disable-next-line functional/prefer-readonly-type
+  [index: number]: TElement;
   // eslint-disable-next-line functional/prefer-readonly-type
   length = 0;
-  readonly #prevObject: ReturnKijs<TElement> | undefined;
+  readonly #prevObject?: Kijs<T>;
   readonly #context: Document;
   readonly kijs = true;
   constructor(
     selector: ParamNewKijs<TElement>,
-    prevObject?: ReturnKijs<TElement>,
+    prevObject?: Kijs<T>,
     context = document
   ) {
     this.#prevObject = prevObject;
@@ -108,7 +103,7 @@ class Kijs<TElement = HTMLElement> {
     // eslint-disable-next-line functional/no-let
     let index = 0;
     Array.from(elements.values()).forEach((item) => {
-      (this as any)[index++] = item;
+      this[index++] = item;
     });
   }
   each(
@@ -119,7 +114,7 @@ class Kijs<TElement = HTMLElement> {
       kijs: this
     ) => void | false
   ): this {
-    each(this as any, callback);
+    each(this, callback);
 
     return this;
   }
@@ -130,8 +125,8 @@ class Kijs<TElement = HTMLElement> {
       index: number,
       kijs: this
     ) => T
-  ): ReturnKijs<T> {
-    return kijs(
+  ): Kijs<T> {
+    return new Kijs(
       Array.prototype.map.call(this, (el, index) =>
         callback.call(el, el, index, this)
       ) as readonly T[]
@@ -144,8 +139,8 @@ class Kijs<TElement = HTMLElement> {
       index: number,
       kijs: this
     ) => boolean | void
-  ): ReturnKijs<TElement> {
-    return kijs(
+  ): Kijs<TElement> {
+    return new Kijs(
       Array.prototype.filter.call(this, (el, index) =>
         callback.call(el, el, index, this)
       ) as readonly TElement[]
@@ -153,37 +148,34 @@ class Kijs<TElement = HTMLElement> {
   }
   // eslint-disable-next-line functional/prefer-readonly-type
   toArray(): TElement[] {
-    return Array.from(this as any);
+    return Array.from(this);
   }
   get(index: number): TElement | void {
-    return (this as any)[index < -1 ? this.length + index : index];
+    return this[index < -1 ? this.length + index : index];
   }
-  pushStack(elements: LikeArray<TElement>): ReturnKijs<TElement> {
-    return kijs(elements, this as any);
+  pushStack(elements: LikeArray<TElement>): Kijs<TElement> {
+    return new Kijs(elements, this);
   }
-  slice(start: number, end?: number): ReturnKijs<TElement> {
-    return kijs(
-      Array.prototype.slice.call(this as any, start, end),
-      this as any
-    );
+  slice(start: number, end?: number): Kijs<TElement> {
+    return new Kijs(Array.prototype.slice.call(this, start, end), this);
   }
-  eq(index: number): ReturnKijs<TElement> {
-    return kijs(this.get(index), this as any);
+  eq(index: number): Kijs<TElement> {
+    return new Kijs(this.get(index), this);
   }
-  first(): ReturnKijs<TElement> {
+  first(): Kijs<TElement> {
     return this.eq(0);
   }
-  last(): ReturnKijs<TElement> {
+  last(): Kijs<TElement> {
     return this.eq(-1);
   }
-  even(): ReturnKijs<TElement> {
+  even(): Kijs<TElement> {
     return this.filter((_el, index) => index % 2 === 0);
   }
-  odd(): ReturnKijs<TElement> {
+  odd(): Kijs<TElement> {
     return this.filter((_el, index) => index % 2 !== 0);
   }
-  end(): ReturnKijs<TElement> {
-    return this.#prevObject || kijs();
+  end() {
+    return this.#prevObject || new Kijs();
   }
   readonly push = Array.prototype.push;
   readonly sort = Array.prototype.sort;
@@ -191,7 +183,7 @@ class Kijs<TElement = HTMLElement> {
   readonly extend = extend as unknown as (
     ...src: readonly LikeArray<TElement>[]
   ) => this;
-  find<T extends Element>(selector: ParamNewKijs<T>): ReturnKijs<T> {
+  find<T extends Element>(selector: ParamNewKijs<T>): Kijs<T> {
     if (typeof selector === "string") {
       const elements = new Set<T>();
       this.each((value) => {
@@ -200,24 +192,24 @@ class Kijs<TElement = HTMLElement> {
         }
       });
 
-      return kijs(Array.from(elements.values()), this as any);
+      return new Kijs(Array.from(elements.values()), this);
     }
 
-    return kijs(selector).filter((value) => {
+    return new Kijs(selector).filter((value) => {
       // eslint-disable-next-line functional/no-let
       let { length } = this;
 
       while (length--) {
-        if ((this as any)[length].contains(value)) {
+        if ((this[length] as unknown as Node).contains(value)) {
           return true;
         }
       }
     });
   }
-  not(selector: ParamNewKijs<TElement>): ReturnKijs<TElement>;
+  not(selector: ParamNewKijs<TElement>): Kijs<TElement>;
   not(
     filter: (this: TElement, index: number, element: TElement) => void | boolean
-  ): ReturnKijs<TElement>;
+  ): Kijs<TElement>;
   not(selector: any) {
     if (typeof selector === "function") {
       return this.filter((value, index) => {
@@ -225,16 +217,16 @@ class Kijs<TElement = HTMLElement> {
       });
     }
 
-    const elements = Array.from(kijs(selector)); /* free */
+    const elements = Array.from(new Kijs(selector)); /* free */
 
     return this.filter((value) => {
       return elements.includes(value) === false;
     });
   }
-  is(selector: ParamNewKijs<TElement>): ReturnKijs<TElement>;
+  is(selector: ParamNewKijs<TElement>): Kijs<TElement>;
   is(
     filter: (this: TElement, index: number, element: TElement) => void | boolean
-  ): ReturnKijs<TElement>;
+  ): Kijs<TElement>;
   is(selector: any) {
     if (typeof selector === "function") {
       return this.filter(selector);
@@ -246,15 +238,15 @@ class Kijs<TElement = HTMLElement> {
       });
     }
 
-    const elements = Array.from(kijs(selector)); /* free */
+    const elements = Array.from(new Kijs(selector)); /* free */
 
     return this.filter((value) => {
       return elements.includes(value);
     });
   }
   readonly init = kijs;
-  has(element: ParamNewKijs<TElement>): ReturnKijs<TElement> {
-    const elements = kijs(element);
+  has(element: ParamNewKijs<TElement>): Kijs<TElement> {
+    const elements = new Kijs(element);
 
     return this.filter((value: { readonly contains?: Function }) => {
       // eslint-disable-next-line functional/no-let
@@ -267,7 +259,7 @@ class Kijs<TElement = HTMLElement> {
       }
     });
   }
-  closest<T extends Element>(selector: ParamNewKijs<T>): ReturnKijs<T> {
+  closest<T extends Element>(selector: ParamNewKijs<T>): Kijs<T> {
     if (typeof selector === "string") {
       const elements = new Set<T>();
 
@@ -280,10 +272,10 @@ class Kijs<TElement = HTMLElement> {
         }
       });
 
-      return kijs(Array.from(elements.values()), this as any);
+      return new Kijs(Array.from(elements.values()), this);
     }
 
-    return kijs(selector).filter((value) => {
+    return new Kijs(selector).filter((value) => {
       // eslint-disable-next-line functional/no-let
       let ok = false;
       this.each((v: any) => {
@@ -301,29 +293,29 @@ class Kijs<TElement = HTMLElement> {
       return ok;
     });
   }
-  index(selector?: string | ReturnKijs<TElement> | TElement): number {
+  index(selector?: string | Kijs<TElement> | TElement): number {
     if (selector === undefined) {
-      return (this as any)[0]?.parentNode
+      return (this[0] as unknown as Node)?.parentNode
         ? this.first().prevAll().length || -1
         : -1;
     }
 
     if (typeof selector === "string") {
-      return Array.prototype.indexOf.call(kijs(selector), (this as any)[0]);
+      return Array.prototype.indexOf.call(new Kijs(selector), this[0]);
     }
 
     return Array.prototype.indexOf.call(
-      this as any,
+      this,
       selector instanceof Kijs ? selector[0] : selector
     );
   }
-  add(selector: ParamNewKijs<TElement>): ReturnKijs<TElement> {
-    return this.pushStack(kijs(selector).toArray());
+  add(selector: ParamNewKijs<TElement>): Kijs<TElement> {
+    return this.pushStack(new Kijs(selector).toArray());
   }
-  addBack(selector: ParamNewKijs<TElement>): ReturnKijs<TElement> {
-    return kijs(selector).pushStack(this.toArray());
+  addBack(selector: ParamNewKijs<TElement>): Kijs<TElement> {
+    return new Kijs(selector).pushStack(this.toArray());
   }
-  parent<T = Node>(selector?: string): ReturnKijs<T> {
+  parent<T = Node>(selector?: string): Kijs<T> {
     const elements = new Set<T>();
 
     if (selector === void 0) {
@@ -347,9 +339,9 @@ class Kijs<TElement = HTMLElement> {
       });
     }
 
-    return kijs(Array.from(elements.values()), this as any);
+    return new Kijs(Array.from(elements.values()), this);
   }
-  parents<T extends Element>(selector?: string): ReturnKijs<T> {
+  parents<T extends Element>(selector?: string): Kijs<T> {
     const elements = new Set<T>();
 
     if (selector === void 0) {
@@ -368,13 +360,13 @@ class Kijs<TElement = HTMLElement> {
       });
     }
 
-    return kijs(Array.from(elements.values()));
+    return new Kijs(Array.from(elements.values()));
   }
   parentsUntil<T extends Element>(
     excludeSelector?: ParamNewKijs<T>,
     selector?: string
-  ): ReturnKijs<TElement> {
-    const exclude = kijs(excludeSelector || []).toArray();
+  ): Kijs<TElement> {
+    const exclude = new Kijs(excludeSelector || []).toArray();
     const elements = new Set<TElement>();
 
     if (selector === void 0) {
@@ -399,9 +391,9 @@ class Kijs<TElement = HTMLElement> {
       });
     }
 
-    return kijs(Array.from(elements.values()));
+    return new Kijs(Array.from(elements.values()));
   }
-  next<T extends Element>(selector?: string): ReturnKijs<T> {
+  next<T extends Element>(selector?: string): Kijs<T> {
     const elements = new Set<T>();
 
     if (selector === void 0) {
@@ -421,9 +413,9 @@ class Kijs<TElement = HTMLElement> {
       });
     }
 
-    return kijs(Array.from(elements.values()), this as any);
+    return new Kijs(Array.from(elements.values()), this);
   }
-  prev<T extends Element>(selector?: string): ReturnKijs<T> {
+  prev<T extends Element>(selector?: string): Kijs<T> {
     const elements = new Set<T>();
 
     if (selector === void 0) {
@@ -443,9 +435,9 @@ class Kijs<TElement = HTMLElement> {
       });
     }
 
-    return kijs(Array.from(elements.values()), this as any);
+    return new Kijs(Array.from(elements.values()), this);
   }
-  nextAll<T extends Element>(selector?: string): ReturnKijs<T> {
+  nextAll<T extends Element>(selector?: string): Kijs<T> {
     const elements = new Set<T>();
 
     if (selector === void 0) {
@@ -464,9 +456,9 @@ class Kijs<TElement = HTMLElement> {
       });
     }
 
-    return kijs(Array.from(elements.values()), this as any);
+    return new Kijs(Array.from(elements.values()), this);
   }
-  prevAll<T extends Element>(selector?: string): ReturnKijs<T> {
+  prevAll<T extends Element>(selector?: string): Kijs<T> {
     const elements = new Set<T>();
 
     if (selector === void 0) {
@@ -485,13 +477,13 @@ class Kijs<TElement = HTMLElement> {
       });
     }
 
-    return kijs(Array.from(elements.values()), this as any);
+    return new Kijs(Array.from(elements.values()), this);
   }
   nextUntil<T extends Element>(
     selectorExclude?: ParamNewKijs<T>,
     selector?: string
-  ): ReturnKijs<TElement> {
-    const exclude = kijs(selectorExclude || []).toArray();
+  ): Kijs<TElement> {
+    const exclude = new Kijs(selectorExclude || []).toArray();
     const elements = new Set<TElement>();
 
     if (selector === void 0) {
@@ -516,13 +508,13 @@ class Kijs<TElement = HTMLElement> {
       });
     }
 
-    return kijs(Array.from(elements.values()), this as any);
+    return new Kijs(Array.from(elements.values()), this);
   }
   prevUntil<R extends Element, T extends Element>(
     selectorExclude?: ParamNewKijs<T>,
     selector?: string
-  ): ReturnKijs<R> {
-    const exclude = kijs(selectorExclude || []).toArray();
+  ): Kijs<R> {
+    const exclude = new Kijs(selectorExclude || []).toArray();
     const elements = new Set<R>();
 
     if (selector === void 0) {
@@ -547,9 +539,9 @@ class Kijs<TElement = HTMLElement> {
       });
     }
 
-    return kijs(Array.from(elements.values()), this as any);
+    return new Kijs(Array.from(elements.values()), this);
   }
-  siblings<T extends Element>(selector?: string): ReturnKijs<T> {
+  siblings<T extends Element>(selector?: string): Kijs<T> {
     const elements = new Set<T>();
 
     if (selector === void 0) {
@@ -576,9 +568,9 @@ class Kijs<TElement = HTMLElement> {
       });
     }
 
-    return kijs(Array.from(elements.values()), this as any);
+    return new Kijs(Array.from(elements.values()), this);
   }
-  children<T extends Element>(selector?: string): ReturnKijs<T> {
+  children<T extends Element>(selector?: string): Kijs<T> {
     const elements = new Set<T>();
 
     if (selector === void 0) {
@@ -595,9 +587,9 @@ class Kijs<TElement = HTMLElement> {
       });
     }
 
-    return kijs(Array.from(elements.values()), this as any);
+    return new Kijs(Array.from(elements.values()), this);
   }
-  contents<T extends Element>(): ReturnKijs<T> {
+  contents<T extends Element>(): Kijs<T> {
     const elements = new Set<T>();
 
     this.each((value: any) => {
@@ -617,7 +609,7 @@ class Kijs<TElement = HTMLElement> {
       value.childNodes.forEach((i: T) => elements.add(i));
     });
 
-    return kijs(Array.from(elements.values()), this as any);
+    return new Kijs(Array.from(elements.values()), this);
   }
   readonly ready = ready;
 
@@ -634,7 +626,7 @@ class Kijs<TElement = HTMLElement> {
       return this;
     }
 
-    return setData((this as any)[0], key);
+    return setData(this[0], key);
   }
   removeData(): this;
   removeData(key: string | number | symbol): this;
@@ -659,7 +651,7 @@ class Kijs<TElement = HTMLElement> {
     selector: any,
     callback?: (this: TElement, event: E) => void
   ): this {
-    on(this as any, name, selector, callback as any);
+    on(this, name, selector, callback as any);
 
     return this;
   }
@@ -677,7 +669,7 @@ class Kijs<TElement = HTMLElement> {
     selector: any,
     callback?: (this: TElement, event: E) => void
   ): this {
-    one(this as any, name, selector, callback as any);
+    one(this, name, selector, callback as any);
 
     return this;
   }
@@ -695,7 +687,7 @@ class Kijs<TElement = HTMLElement> {
     selector: any,
     callback?: (this: TElement, event: E) => void
   ): this {
-    off(this as any, name, selector, callback as any);
+    off(this, name, selector, callback as any);
 
     return this;
   }
@@ -716,7 +708,7 @@ class Kijs<TElement = HTMLElement> {
   }
   remove(selector?: string): this {
     if (selector === void 0) {
-      cleanData(this as any);
+      cleanData(this);
       this.each((value) => {
         if (value instanceof Node) {
           value.parentNode?.removeChild(value);
@@ -737,7 +729,7 @@ class Kijs<TElement = HTMLElement> {
   text(content: string | number): this;
   text(content?: string | number): string | this {
     if (content === undefined) {
-      return getText(this as any);
+      return getText(this);
     }
 
     this.empty().each((value) => {
@@ -753,7 +745,7 @@ class Kijs<TElement = HTMLElement> {
     return this;
   }
   empty(): this {
-    cleanData(this as any);
+    cleanData(this);
     this.each((elem) => {
       if (elem instanceof Node && elem.nodeType === 1) {
         // eslint-disable-next-line functional/immutable-data
@@ -775,7 +767,7 @@ class Kijs<TElement = HTMLElement> {
     )[]
   ): this {
     insertElements(
-      this as any,
+      this,
       (elem, child) => elem.append(...child),
       (e) => e.innerHTML,
       ...contents
@@ -795,7 +787,7 @@ class Kijs<TElement = HTMLElement> {
     )[]
   ): this {
     insertElements(
-      this as any,
+      this,
       (elem, child) => elem.prepend(...child),
       (e) => e.innerHTML,
       ...contents
@@ -815,7 +807,7 @@ class Kijs<TElement = HTMLElement> {
     )[]
   ): this {
     insertElements(
-      this as any,
+      this,
       (elem, child) => elem.after(...child),
       (e) => e.innerHTML,
       ...contents
@@ -835,7 +827,7 @@ class Kijs<TElement = HTMLElement> {
     )[]
   ): this {
     insertElements(
-      this as any,
+      this,
       (elem, child) => elem.before(...child),
       (e) => e.innerHTML,
       ...contents
@@ -846,14 +838,14 @@ class Kijs<TElement = HTMLElement> {
   clone(
     dataAndEvent = false,
     deepDataAndEvent: boolean = dataAndEvent
-  ): ReturnKijs<TElement> {
+  ): Kijs<TElement> {
     return this.map((elem: any) => clone(elem, dataAndEvent, deepDataAndEvent));
   }
   html(): string;
   html(htmlString: string): this;
   html(htmlString?: string): string | this {
     if (htmlString === undefined) {
-      return (this as any)[0].innerHTML;
+      return (this[0] as unknown as Element)?.innerHTML;
     }
 
     this.each((value: any) => {
@@ -875,7 +867,7 @@ class Kijs<TElement = HTMLElement> {
     )[]
   ): this {
     insertElements(
-      this as any,
+      this,
       (elem, child) => elem.after(...child),
       (e) => e.innerHTML,
       ...contents
@@ -886,23 +878,23 @@ class Kijs<TElement = HTMLElement> {
     return this;
   }
   appendTo(selector: ParamNewKijs<Element>): this {
-    kijs(selector).append(this as any);
+    new Kijs(selector).append(this as unknown as LikeArray<Element>);
     return this;
   }
   prependTo(selector: ParamNewKijs<Element>): this {
-    kijs(selector).prepend(this as any);
+    new Kijs(selector).prepend(this as unknown as LikeArray<Element>);
     return this;
   }
   insertAfter(selector: ParamNewKijs<Element>): this {
-    kijs(selector).after(this as any);
+    new Kijs(selector).after(this as unknown as LikeArray<Element>);
     return this;
   }
   insertBefore(selector: ParamNewKijs<Element>): this {
-    kijs(selector).before(this as any);
+    new Kijs(selector).before(this as unknown as LikeArray<Element>);
     return this;
   }
   replaceAll(selector: ParamNewKijs<Element>): this {
-    kijs(selector).replaceWith(this as any);
+    new Kijs(selector).replaceWith(this as unknown as LikeArray<Element>);
     return this;
   }
   css<Prop extends keyof CSSStyleDeclaration>(
@@ -921,17 +913,20 @@ class Kijs<TElement = HTMLElement> {
   css(prop: any, value?: any) {
     if (Array.isArray(prop)) {
       const map = {} as any;
-      const styles = getStyles((this as any)[0]);
+      const el = this[0];
 
-      prop.forEach((prop) => {
-        // eslint-disable-next-line functional/immutable-data
-        map[prop] = css((this as any)[0], prop, false, styles);
-      });
+      if (el instanceof Element) {
+        const styles = getStyles(el);
+        prop.forEach((prop) => {
+          // eslint-disable-next-line functional/immutable-data
+          map[prop] = css(el as unknown as HTMLElement, prop, false, styles);
+        });
+      }
 
       return map;
     }
     if (typeof prop !== "object" && value === undefined) {
-      return css((this as any)[0], prop);
+      return css(this[0] as unknown as HTMLElement, prop);
     }
     if (isObject(prop)) {
       this.each((elem) => {
@@ -957,7 +952,7 @@ class Kijs<TElement = HTMLElement> {
   attr(name: string, value: string): this;
   attr(name: string, value?: string) {
     if (value === void 0) {
-      return attr((this as any)[0], name);
+      return attr(this[0] as unknown as HTMLElement, name);
     }
 
     this.each((v) => {
@@ -977,7 +972,7 @@ class Kijs<TElement = HTMLElement> {
   prop<T = any>(name: string, value: T): this;
   prop<T = any>(name: string, value?: T) {
     if (value === void 0) {
-      return prop((this as any)[0], name);
+      return prop(this[0] as unknown as HTMLElement, name);
     }
 
     this.each((v: any) => {
@@ -999,7 +994,7 @@ class Kijs<TElement = HTMLElement> {
       | readonly string[]
       | ((index: number, className: string) => string | readonly string[])
   ): this {
-    addClass(this as any, classes);
+    addClass(this as unknown as readonly HTMLElement[], classes);
 
     return this;
   }
@@ -1009,7 +1004,7 @@ class Kijs<TElement = HTMLElement> {
       | readonly string[]
       | ((index: number, className: string) => string | readonly string[])
   ): this {
-    removeClass(this as any, classes);
+    removeClass(this as unknown as readonly HTMLElement[], classes);
 
     return this;
   }
@@ -1019,21 +1014,21 @@ class Kijs<TElement = HTMLElement> {
       | readonly string[]
       | ((index: number, className: string) => string | readonly string[])
   ): this {
-    toggleClass(this as any, classes as any);
+    toggleClass(this as unknown as readonly HTMLElement[], classes as any);
 
     return this;
   }
   hasClass(clazz: string): boolean {
-    return hasClass(this as any, clazz);
+    return hasClass(this as unknown as readonly HTMLElement[], clazz);
   }
   value(): string | number | readonly (string | number)[];
   value(value: string | number | readonly (string | number)[]): this;
   value(val?: any) {
     if (val === void 0) {
-      return value(this as any);
+      return value(this as unknown as readonly HTMLElement[]);
     }
 
-    value(this as any, val);
+    value(this as unknown as readonly HTMLElement[], val);
 
     return this;
   }
@@ -1061,13 +1056,13 @@ class Kijs<TElement = HTMLElement> {
     // eslint-disable-next-line functional/no-let
     let lastVal;
     (weakCacheEvent as any)
-      .get((this as any)[0])
+      .get(this[0])
       ?.get(name)
       .forEach((cb: any) => {
         const event = new Event(name);
         // eslint-disable-next-line functional/immutable-data
         (event as any).data = data;
-        lastVal = cb.handler.call((this as any)[0], event);
+        lastVal = cb.handler.call(this[0], event);
       });
 
     return lastVal;
@@ -1084,7 +1079,7 @@ class Kijs<TElement = HTMLElement> {
 
       return (
         elem.name &&
-        !kijs(elem).is(":disabled") &&
+        !new Kijs(elem).is(":disabled") &&
         rsubmittable.test(elem.nodeName) &&
         !rsubmitterTypes.test(type) &&
         (elem.checked || !rcheckableType.test(type))
@@ -1119,22 +1114,26 @@ class Kijs<TElement = HTMLElement> {
     // eslint-disable-next-line functional/no-let
     let wrap;
 
-    if ((this as any)[0]) {
+    if (this[0]) {
       if (isFunction(html)) {
-        html = html.call((this as any)[0]);
+        html = html.call(this[0]);
       }
 
       // The elements to wrap the target around
 
-      wrap = kijs(html, this as any, (this as any)[0].ownerDocument)
+      wrap = new Kijs(
+        html,
+        this,
+        (this[0] as unknown as HTMLElement).ownerDocument
+      )
         .eq(0)
         .clone(true);
 
-      if ((this as any)[0].parentNode) {
-        wrap.insertBefore((this as any)[0]);
+      if ((this[0] as unknown as HTMLElement).parentNode) {
+        wrap.insertBefore(this[0] as unknown as HTMLElement);
       }
 
-      kijs(
+      new Kijs(
         wrap.map((elem) => {
           while (elem.firstElementChild) {
             elem = elem.firstElementChild;
@@ -1142,7 +1141,7 @@ class Kijs<TElement = HTMLElement> {
 
           return elem;
         })
-      ).append(this as any);
+      ).append(this[0] as unknown as HTMLElement);
     }
 
     return this;
@@ -1151,14 +1150,14 @@ class Kijs<TElement = HTMLElement> {
   wrapInner<T extends Element>(html: ParamNewKijs<T>): this {
     if (isFunction(html)) {
       this.each(function (e, i) {
-        kijs(e).wrapInner(html.call(this as any, i));
+        new Kijs(e).wrapInner(html.call(this, i));
       });
 
       return this;
     }
 
     this.each(function (e) {
-      const self = kijs(e),
+      const self = new Kijs(e),
         contents = self.contents();
 
       if (contents.length) {
@@ -1179,7 +1178,7 @@ class Kijs<TElement = HTMLElement> {
     const htmlIsFunction = isFunction(html);
 
     this.each((el, i) => {
-      kijs(el).wrapAll(htmlIsFunction ? html.call(el, i, el) : html);
+      new Kijs(el).wrapAll(htmlIsFunction ? html.call(el, i, el) : html);
     });
 
     return this;
@@ -1189,7 +1188,7 @@ class Kijs<TElement = HTMLElement> {
     this.parent(selector)
       .not("body")
       .each((e) => {
-        kijs(e).replaceWith(e.childNodes as any);
+        new Kijs(e).replaceWith(e.childNodes as any);
       });
     return this;
   }
@@ -1201,21 +1200,21 @@ class Kijs<TElement = HTMLElement> {
   };
   offset(options?: any) {
     if (options === undefined) {
-      return offset(this as any);
+      return offset(this[0] as unknown as HTMLElement);
     }
 
-    offset(this as any, options);
+    this.each((el) => offset(el as unknown as HTMLElement, options));
     return this;
   }
 
   position(): ReturnType<typeof position> {
-    return position((this as any)[0]);
+    return position(this[0] as unknown as HTMLElement);
   }
 
   offsetParent(): readonly typeof HTMLElement["prototype"]["offsetParent"][] {
     return this.map(function () {
       // eslint-disable-next-line functional/no-let
-      let offsetParent = (this as any).offsetParent;
+      let offsetParent = (this as any)?.offsetParent;
 
       while (offsetParent && css(offsetParent, "position") === "static") {
         offsetParent = offsetParent.offsetParent;
@@ -1229,10 +1228,10 @@ class Kijs<TElement = HTMLElement> {
   scrollLeft(value: number): this;
   scrollLeft(value?: number) {
     if (value === void 0) {
-      return pageOffset(this as any, "scrollLeft");
+      return pageOffset(this, "scrollLeft");
     }
 
-    pageOffset(this as any, "scrollLeft", value);
+    pageOffset(this, "scrollLeft", value);
 
     return this;
   }
@@ -1241,10 +1240,10 @@ class Kijs<TElement = HTMLElement> {
   scrollTop(value: number): this;
   scrollTop(value?: number) {
     if (value === void 0) {
-      return pageOffset(this as any, "scrollTop");
+      return pageOffset(this, "scrollTop");
     }
 
-    pageOffset(this as any, "scrollTop", value);
+    pageOffset(this, "scrollTop", value);
 
     return this;
   }
@@ -1298,26 +1297,106 @@ class Kijs<TElement = HTMLElement> {
   ) as FnSize<this>;
   readonly outerWidth = (callSizeof("width") as any).bind(this) as FnSize<this>;
 
-  readonly blur = generateListenerEvent(this, "blur");
-  readonly focus = generateListenerEvent(this, "focus");
-  readonly focusin = generateListenerEvent(this, "focusin");
-  readonly focusout = generateListenerEvent(this, "focusout");
-  readonly resize = generateListenerEvent(this, "resize");
-  readonly scroll = generateListenerEvent(this, "scroll");
-  readonly click = generateListenerEvent(this, "click");
-  readonly dblclick = generateListenerEvent(this, "dblclick");
-  readonly mousedown = generateListenerEvent(this, "mousedown");
-  readonly mouseup = generateListenerEvent(this, "mouseup");
-  readonly mouseover = generateListenerEvent(this, "mouseover");
-  readonly mouseenter = generateListenerEvent(this, "mouseenter");
-  readonly mouseleave = generateListenerEvent(this, "mouseleave");
-  readonly change = generateListenerEvent(this, "change");
-  readonly select = generateListenerEvent(this, "select");
-  readonly submit = generateListenerEvent(this, "submit");
-  readonly keydown = generateListenerEvent(this, "keydown");
-  readonly keypress = generateListenerEvent(this, "keypress");
-  readonly keyup = generateListenerEvent(this, "keyup");
-  readonly contextmenu = generateListenerEvent(this, "contextmenu");
+  blur(callback?: (event: EventOf<"blur">) => void): this {
+    return callback === void 0
+      ? this.trigger("blur")
+      : this.on("blur", callback);
+  }
+  focus(callback?: (event: EventOf<"focus">) => void): this {
+    return callback === void 0
+      ? this.trigger("focus")
+      : this.on("focus", callback);
+  }
+  focusin(callback?: (event: EventOf<"focusin">) => void): this {
+    return callback === void 0
+      ? this.trigger("focusin")
+      : this.on("focusin", callback);
+  }
+  focusout(callback?: (event: EventOf<"focusout">) => void): this {
+    return callback === void 0
+      ? this.trigger("focusout")
+      : this.on("focusout", callback);
+  }
+  resize(callback?: (event: EventOf<"resize">) => void): this {
+    return callback === void 0
+      ? this.trigger("resize")
+      : this.on("resize", callback);
+  }
+  scroll(callback?: (event: EventOf<"scroll">) => void): this {
+    return callback === void 0
+      ? this.trigger("scroll")
+      : this.on("scroll", callback);
+  }
+  click(callback?: (event: EventOf<"click">) => void): this {
+    return callback === void 0
+      ? this.trigger("click")
+      : this.on("click", callback);
+  }
+  dblclick(callback?: (event: EventOf<"dblclick">) => void): this {
+    return callback === void 0
+      ? this.trigger("dblclick")
+      : this.on("dblclick", callback);
+  }
+  mousedown(callback?: (event: EventOf<"mousedown">) => void): this {
+    return callback === void 0
+      ? this.trigger("mousedown")
+      : this.on("mousedown", callback);
+  }
+  mouseup(callback?: (event: EventOf<"mouseup">) => void): this {
+    return callback === void 0
+      ? this.trigger("mouseup")
+      : this.on("mouseup", callback);
+  }
+  mouseover(callback?: (event: EventOf<"mouseover">) => void): this {
+    return callback === void 0
+      ? this.trigger("mouseover")
+      : this.on("mouseover", callback);
+  }
+  mouseenter(callback?: (event: EventOf<"mouseenter">) => void): this {
+    return callback === void 0
+      ? this.trigger("mouseenter")
+      : this.on("mouseenter", callback);
+  }
+  mouseleave(callback?: (event: EventOf<"mouseleave">) => void): this {
+    return callback === void 0
+      ? this.trigger("mouseleave")
+      : this.on("mouseleave", callback);
+  }
+  change(callback?: (event: EventOf<"change">) => void): this {
+    return callback === void 0
+      ? this.trigger("change")
+      : this.on("change", callback);
+  }
+  select(callback?: (event: EventOf<"select">) => void): this {
+    return callback === void 0
+      ? this.trigger("select")
+      : this.on("select", callback);
+  }
+  submit(callback?: (event: EventOf<"submit">) => void): this {
+    return callback === void 0
+      ? this.trigger("submit")
+      : this.on("submit", callback);
+  }
+  keydown(callback?: (event: EventOf<"keydown">) => void): this {
+    return callback === void 0
+      ? this.trigger("keydown")
+      : this.on("keydown", callback);
+  }
+  keypress(callback?: (event: EventOf<"keypress">) => void): this {
+    return callback === void 0
+      ? this.trigger("keypress")
+      : this.on("keypress", callback);
+  }
+  keyup(callback?: (event: EventOf<"keyup">) => void): this {
+    return callback === void 0
+      ? this.trigger("keyup")
+      : this.on("keyup", callback);
+  }
+  contextmenu(callback?: (event: EventOf<"contextmenu">) => void): this {
+    return callback === void 0
+      ? this.trigger("contextmenu")
+      : this.on("contextmenu", callback);
+  }
 
   hover(
     cb: (event: EventOf<"mouseenter"> | EventOf<"mouseleave">) => void
@@ -1350,7 +1429,7 @@ function callSizeof(
     "": "outer" + name,
   }[defaultExtra];
 
-  return function (this: ReturnKijs<Element>, value: number, margin = false) {
+  return function (this: Kijs<Element>, value: number, margin = false) {
     const extra = !!defaultExtra || (margin === true ? "margin" : "border");
 
     // eslint-disable-next-line functional/no-let
@@ -1423,25 +1502,16 @@ type Events = {
 
 type EventOf<T extends keyof Events> = Events[T];
 
-function generateListenerEvent<T extends keyof Events>(
-  kijs: Kijs,
-  name: T
-): {
-  (callback?: (event: EventOf<T>) => void): typeof kijs;
-} {
-  return function (callback) {
-    return callback === void 0 ? kijs.trigger(name) : kijs.on(name, callback);
-  };
-}
-
-function insertElements<TElement extends Element, T = TElement>(
+function insertElements<TElement = HTMLElement, T = TElement>(
   elems: LikeArray<TElement>,
-  action: (item: TElement, child: any) => void,
-  callParm: (item: TElement) => T,
+  action: (item: Element, child: any) => void,
+  callParm: (item: Element) => T,
   // eslint-disable-next-line functional/functional-parameters
   ...contents: readonly (
     | CustomElementAdd
     | LikeArray<CustomElementAdd>
+    | Kijs<TElement, T>
+    | Kijs
     | ((
         index: number,
         html: T
@@ -1450,6 +1520,10 @@ function insertElements<TElement extends Element, T = TElement>(
 ): void {
   each(elems, (elem) => {
     const elementsAdd = new Set<any>();
+
+    if (elem instanceof Element === false) {
+      return;
+    }
 
     each(contents, (it, index) => {
       if (typeof it === "function") {
@@ -1480,3 +1554,4 @@ function insertElements<TElement extends Element, T = TElement>(
 }
 
 export default kijs;
+export { Kijs };

@@ -5,7 +5,7 @@ import LikeArray from "../types/LikeArray";
 import each from "./each";
 
 export const weakCacheEvent = new WeakMap<
-  Element,
+  any,
   // eslint-disable-next-line functional/prefer-readonly-type
   Map<
     string,
@@ -20,20 +20,20 @@ export const weakCacheEvent = new WeakMap<
 // eslint-disable-next-line @typescript-eslint/ban-types
 const weakCacheFunctionEvent = new WeakMap<Function, Function>();
 
-function on<N extends string, E extends Event, TElement extends Element>(
+function on<N extends string, E extends Event, TElement = HTMLElement>(
   elements: LikeArray<TElement>,
   name: N,
   callback: (this: TElement, event: E) => void
 ): void;
 
-function on<N extends string, E extends Event, TElement extends Element>(
+function on<N extends string, E extends Event, TElement = HTMLElement>(
   elements: LikeArray<TElement>,
   name: N,
   selector: string,
   callback: (this: TElement, event: E) => void
 ): void;
 
-function on<N extends string, TElement extends Element>(
+function on<N extends string, TElement = HTMLElement>(
   elements: LikeArray<TElement>,
   name: N,
   selector: any,
@@ -62,7 +62,7 @@ function on<N extends string, TElement extends Element>(
 
   weakCacheFunctionEvent.set(callback, handler);
 
-  each(elements, (value) => {
+  each<TElement>(elements, (value) => {
     if (weakCacheEvent.has(value) === false) {
       weakCacheEvent.set(value, new Map());
     }
@@ -72,24 +72,24 @@ function on<N extends string, TElement extends Element>(
     }
 
     weakCacheEvent.get(value)!.get(name)!.add({ handler, selector });
-    value.addEventListener(name, handler);
+    (value as unknown as Node)?.addEventListener(name, handler);
   });
 }
 
-function one<N extends string, E extends Event, TElement extends Element>(
+function one<N extends string, E extends Event, TElement = HTMLElement>(
   elements: LikeArray<TElement>,
   name: N,
   callback: (this: TElement, event: E) => void
 ): void;
 
-function one<N extends string, E extends Event, TElement extends Element>(
+function one<N extends string, E extends Event, TElement = HTMLElement>(
   elements: LikeArray<TElement>,
   name: N,
   selector: string,
   callback: (this: TElement, event: E) => void
 ): void;
 
-function one<N extends string, E extends Event, TElement extends Element>(
+function one<N extends string, E extends Event, TElement = HTMLElement>(
   elements: LikeArray<TElement>,
   name: N,
   selector: any,
@@ -116,21 +116,21 @@ function one<N extends string, E extends Event, TElement extends Element>(
   }
 }
 
-// function off<TElement extends Element>(elements: LikeArray<TElement>): void;
-function off<N extends string, E extends Event, TElement extends Element>(
+// function off<TElement= HTMLElement>(elements: LikeArray<TElement>): void;
+function off<N extends string, E extends Event, TElement = HTMLElement>(
   elements: LikeArray<TElement>,
   name?: N,
   callback?: (this: TElement, event: E) => void
 ): void;
 
-function off<N extends string, E extends Event, TElement extends Element>(
+function off<N extends string, E extends Event, TElement = HTMLElement>(
   elements: LikeArray<TElement>,
   name: N,
   selector: string,
   callback: (this: TElement, event: E) => void
 ): void;
 
-function off<N extends string, E extends Event, TElement extends Element>(
+function off<N extends string, E extends Event, TElement = HTMLElement>(
   elements: LikeArray<TElement>,
   name: N,
   selector: any,

@@ -1,13 +1,13 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-const weakCache = new WeakMap<Element, any>();
+const weakCache = new WeakMap<any, any>();
 
-function data<T extends Record<any, any>>(object: Element): T;
+function data<T extends Record<any, any>>(object: any): T;
 function data<T = any>(
-  object: Element,
+  object: any,
   key: string | number | symbol
 ): T;
 function data<V extends Record<any, any>, T = any>(
-  object: Element,
+  object: any,
   key: string | number | symbol,
   value: T
 ): V;
@@ -15,9 +15,9 @@ function data<
   K extends string | number | symbol,
   B extends Record<any, any>,
   V = any
->(object: Element, data: Record<K, V>): B;
+>(object: any, data: Record<K, V>): B;
 
-function data(object: Element, key?: any, value?: any) {
+function data(object: any, key?: any, value?: any) {
   if (key === undefined) {
     return weakCache.get(object) || Object.create(null);
   }
@@ -54,10 +54,10 @@ function data(object: Element, key?: any, value?: any) {
   return weakCache.get(object)!;
 }
 
-function removeData(object: Element): void;
-function removeData(object: Element, key: string | number | symbol): void;
+function removeData(object: any): void;
+function removeData(object: any, key: string | number | symbol): void;
 
-function removeData(object: Element, key?: any) {
+function removeData(object: any, key?: any) {
   if (key === undefined) {
     weakCache.delete(object);
   } else {
