@@ -103,7 +103,7 @@ function $$value<TElement extends HTMLElement>(
   const elem = elems[0];
 
   // eslint-disable-next-line functional/functional-parameters
-  if (!arguments.length) {
+  if (arguments.length < 2) {
     if (elem) {
       hooks =
         valHooks[(elem as any).type] || valHooks[elem.nodeName.toLowerCase()];
