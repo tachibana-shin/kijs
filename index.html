@@ -1,18 +1,17 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
-    <script>
-      $(document).ready(function () {
-        $("button").click(function () {
-          $("p").hide();
-        });
-      });
-    </script>
   </head>
   <body>
     <div id="m1">1</div>
     <div id="m2">2</div>
     <div>3</div>
+    
+    <script type="module">
+      import $ from "https://unpkg.com/kijs"
+      
+      $("điv").text("gello")
+      window.$ = $
+    </script>
   </body>
 </html>

@@ -105,6 +105,8 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     Array.from(elements.values()).forEach((item) => {
       this[index++] = item;
     });
+    
+    this.length = index;
   }
   each(
     callback: (
@@ -732,7 +734,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
       return getText(this);
     }
 
-    this.empty().each((value) => {
+    this.each((value) => {
       if (
         value instanceof Node &&
         (value.nodeType === 1 || value.nodeType === 11 || value.nodeType === 9)
