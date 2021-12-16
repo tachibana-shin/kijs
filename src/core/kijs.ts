@@ -57,6 +57,9 @@ function kijs<TElement = HTMLElement>(
   prevObject?: Kijs,
   context = document
 ) {
+  if (selector instanceof Kijs) {
+    return selector;
+  }
   return new Kijs<TElement>(selector, prevObject, context);
 }
 
@@ -75,9 +78,6 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
   ) {
     this.#prevObject = prevObject;
     this.#context = context;
-    if (selector instanceof Kijs) {
-      return selector as any;
-    }
 
     const elements = new Set<TElement>();
     if (typeof selector === "string") {
