@@ -45,7 +45,7 @@ type ParamNewKijs<TElement = HTMLElement> =
   | null;
 type CustomElementAdd = string | Element | Text;
 
-const rSelector = /[a-zA-Z_]|\.|#/;
+const rSelector = /[a-zA-Z_]|\.|\*|:|>|#/;
 const rCRLF = /\r?\n/g,
   rsubmitterTypes = /^(?:submit|button|image|reset|file)$/i,
   rsubmittable = /^(?:input|select|textarea|keygen)/i;
@@ -90,6 +90,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
           elements.add(el as any);
         });
       } else {
+        // <
         // create element
         createFragment(selector).childNodes.forEach((el) => {
           elements.add(el as any);
