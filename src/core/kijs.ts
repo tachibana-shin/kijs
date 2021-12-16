@@ -106,7 +106,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     Array.from(elements.values()).forEach((item) => {
       this[index++] = item;
     });
-    
+
     this.length = index;
   }
   each(
@@ -180,12 +180,38 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
   end() {
     return this.#prevObject || new Kijs();
   }
-  readonly push = Array.prototype.push;
-  readonly sort = Array.prototype.sort;
-  readonly splice = Array.prototype.splice;
-  readonly extend = extend as unknown as (
-    ...src: readonly LikeArray<TElement>[]
-  ) => this;
+  // eslint-disable-next-line functional/functional-parameters, functional/prefer-readonly-type
+  push(...items: TElement[]): number {
+    return Array.prototype.push.call(this, ...items);
+  }
+  sort(compareFn?: (a: TElement, b: TElement) => number): this {
+    Array.prototype.sort.call(this, compareFn);
+    return this;
+  }
+  splice(
+    start: number,
+    deleteCount?: number,
+    // eslint-disable-next-line functional/functional-parameters, functional/prefer-readonly-type
+    ...items: TElement[]
+  ): // eslint-disable-next-line functional/prefer-readonly-type
+  TElement[] {
+    return Array.prototype.splice.call(
+      this,
+      start,
+      deleteCount as number,
+      ...items
+    );
+  }
+  extend<T = any>(
+    deep: boolean,
+    // eslint-disable-next-line functional/functional-parameters
+    ...src: readonly {
+      readonly [key: string]: T;
+    }[]
+  ): this {
+    extend.call(this, deep, ...src);
+    return this;
+  }
   find<T extends Element>(selector: ParamNewKijs<T>): Kijs<T> {
     if (typeof selector === "string") {
       const elements = new Set<T>();
@@ -614,7 +640,11 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
 
     return new Kijs(Array.from(elements.values()), this);
   }
-  readonly ready = ready;
+  ready(wait: boolean): void;
+  ready(callback?: () => void | Promise<void>): Promise<void>;
+  ready(v: any): any {
+    return ready(v);
+  }
 
   data<T extends object>(): T;
   data<R = any>(key: string | number | symbol): R;
@@ -1035,7 +1065,17 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
 
     return this;
   }
-  readonly val = this.value;
+  val(): string | number | readonly (string | number)[];
+  val(value: string | number | readonly (string | number)[]): this;
+  val(val?: any) {
+    if (val === void 0) {
+      return value(this as unknown as readonly HTMLElement[]);
+    }
+
+    value(this as unknown as readonly HTMLElement[], val);
+
+    return this;
+  }
   trigger(name: string, data?: any) {
     this.each((elem) => {
       if (elem instanceof EventTarget) {

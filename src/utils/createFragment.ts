@@ -29,6 +29,11 @@ export default function createFragment(html: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const wrap = (wrapMap as any)[tag] || wrapMap._default;
 
+  // fix close tag html
+  if (html[0] === "<" && html[html.length - 1] !== ">") {
+    html += ">";
+  }
+
   // eslint-disable-next-line functional/immutable-data
   root.innerHTML = wrap[1] + html.replace(rxhtmlTag, "<$1></$2>") + wrap[2];
 
