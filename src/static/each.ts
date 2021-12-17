@@ -1,10 +1,11 @@
 import { isArrayLike } from "../utils/is";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-function each<T = any, R = any, A = ArrayLike<T>>(
-  array: A,
-  callback: (this: T, value: T, index: number, array: A) => R
-): A;
+function each<T = any, R = any>(
+  // eslint-disable-next-line functional/prefer-readonly-type
+  arr: ArrayLike<T> | ReadonlyArray<T> | Array<T>,
+  callback: (this: T, value: T, index: number, array: typeof arr) => R
+): typeof arr;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 function each<T, K extends keyof T, R = any>(
   obj: T,

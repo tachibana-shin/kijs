@@ -97,7 +97,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
         });
       }
     }
-    if (isArrayLike(selector)) {
+    if (isArrayLike<TElement>(selector)) {
       each(selector, (i) => elements.add(i));
     }
 
@@ -117,7 +117,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
       kijs: this
     ) => void | false
   ): this {
-    each(this, callback);
+    each(this, callback as any);
 
     return this;
   }
@@ -799,14 +799,20 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
         ) => CustomElementAdd | ArrayLike<CustomElementAdd>)
     )[]
   ): this {
-    insertElements(
-      this,
-      (elem, child) => elem.append(...child),
-      (e) => e.innerHTML,
-      ...contents
-    );
-
-    return this;
+    return this.each((el) => {
+      if (el instanceof Element) {
+        el.append(
+          ...Array.from(
+            toElements(
+              el,
+              (el) => (el as unknown as Element)?.innerHTML,
+              this.#context,
+              ...contents
+            )
+          )
+        );
+      }
+    });
   }
   prepend(
     // eslint-disable-next-line functional/functional-parameters
@@ -819,14 +825,20 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
         ) => CustomElementAdd | ArrayLike<CustomElementAdd>)
     )[]
   ): this {
-    insertElements(
-      this,
-      (elem, child) => elem.prepend(...child),
-      (e) => e.innerHTML,
-      ...contents
-    );
-
-    return this;
+    return this.each((el) => {
+      if (el instanceof Element) {
+        el.prepend(
+          ...Array.from(
+            toElements(
+              el,
+              (el) => (el as unknown as Element)?.innerHTML,
+              this.#context,
+              ...contents
+            )
+          )
+        );
+      }
+    });
   }
   after(
     // eslint-disable-next-line functional/functional-parameters
@@ -839,14 +851,20 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
         ) => CustomElementAdd | ArrayLike<CustomElementAdd>)
     )[]
   ): this {
-    insertElements(
-      this,
-      (elem, child) => elem.after(...child),
-      (e) => e.innerHTML,
-      ...contents
-    );
-
-    return this;
+    return this.each((el) => {
+      if (el instanceof Element) {
+        el.after(
+          ...Array.from(
+            toElements(
+              el,
+              (el) => (el as unknown as Element)?.innerHTML,
+              this.#context,
+              ...contents
+            )
+          )
+        );
+      }
+    });
   }
   before(
     // eslint-disable-next-line functional/functional-parameters
@@ -859,14 +877,20 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
         ) => CustomElementAdd | ArrayLike<CustomElementAdd>)
     )[]
   ): this {
-    insertElements(
-      this,
-      (elem, child) => elem.before(...child),
-      (e) => e.innerHTML,
-      ...contents
-    );
-
-    return this;
+    return this.each((el) => {
+      if (el instanceof Element) {
+        el.before(
+          ...Array.from(
+            toElements(
+              el,
+              (el) => (el as unknown as Element)?.innerHTML,
+              this.#context,
+              ...contents
+            )
+          )
+        );
+      }
+    });
   }
   clone(
     dataAndEvent = false,
@@ -899,13 +923,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
         ) => CustomElementAdd | ArrayLike<CustomElementAdd>)
     )[]
   ): this {
-    insertElements(
-      this,
-      (elem, child) => elem.after(...child),
-      (e) => e.innerHTML,
-      ...contents
-    );
-
+    this.after(...contents);
     this.remove();
 
     return this;
@@ -1545,10 +1563,10 @@ type Events = {
 
 type EventOf<T extends keyof Events> = Events[T];
 
-function insertElements<TElement = HTMLElement, T = TElement>(
-  elems: ArrayLike<TElement>,
-  action: (item: Element, child: any) => void,
-  callParm: (item: Element) => T,
+function toElements<TElement = HTMLElement, T = TElement>(
+  elem: TElement,
+  callParm: (item: TElement) => T,
+  context: Document,
   // eslint-disable-next-line functional/functional-parameters
   ...contents: readonly (
     | CustomElementAdd
@@ -1558,47 +1576,54 @@ function insertElements<TElement = HTMLElement, T = TElement>(
     | ((
         index: number,
         html: T
-      ) => CustomElementAdd | ArrayLike<CustomElementAdd>)
+      ) =>
+        | CustomElementAdd
+        | ArrayLike<CustomElementAdd>
+        | Kijs<TElement, T>
+        | Kijs)
   )[]
-): void {
-  each(elems, (elem) => {
-    const elementsAdd = new Set<any>();
+) {
+  const elementsAdd = new Set<Node>();
 
-    if (elem instanceof Element === false) {
+  each(contents, (it, index) => {
+    if (typeof it === "function") {
+      it = it.call(elem, index, callParm(elem));
+    }
+
+    if (isArrayLike(it)) {
+      toElements(
+        elem,
+        callParm,
+        context,
+        ...(Array.from(it as any) as any)
+      ).forEach((el) => {
+        elementsAdd.add(el);
+      });
+
       return;
     }
 
-    each(contents, (it, index) => {
-      if (typeof it === "function") {
-        it = it.call(elem, index, callParm(elem));
+    if (typeof it === "string") {
+      const itTrimed = trim(it);
+      if (!rSelector.test(itTrimed[0])) {
+        Array.from(createFragment(it).childNodes).forEach((i) =>
+          elementsAdd.add(i)
+        );
+      } else {
+        elementsAdd.add(document.createTextNode(it));
       }
 
-      if (isArrayLike(it as any)) {
-        Array.from(it as any).forEach((i) => elementsAdd.add(i));
-        return;
+      return;
+    }
+
+    if (it instanceof Node) {
+      if (context.documentElement.contains(it)) {
+        elementsAdd.add(it.cloneNode(true));
       }
-      if (typeof it === "string") {
-        const itTrimed = trim(it);
-        if (rSelector.test(itTrimed[0])) {
-          Array.from(createFragment(it).childNodes).forEach((i) =>
-            elementsAdd.add(i)
-          );
-        } else {
-          elementsAdd.add(document.createTextNode(it))
-        }
-
-        return;
-      }
-
-      if (document.documentElement.contains(it as any)) {
-        it = (it as any).cloneNode(true);
-      }
-
-      elementsAdd.add(it);
-    });
-
-    action(elem, elementsAdd);
+    }
   });
+
+  return elementsAdd;
 }
 
 export default kijs;

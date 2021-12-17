@@ -27,7 +27,10 @@ export default function toParam(
 
     // eslint-disable-next-line functional/immutable-data
     dstr.push(
-      encodeURIComponent(key) + "=" + encodeURIComponent(val == null ? "" : val)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      encodeURIComponent(key as any) +
+        "=" +
+        encodeURIComponent(val == null ? "" : val)
     );
   });
 
