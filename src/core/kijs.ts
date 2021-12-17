@@ -1577,10 +1577,15 @@ function insertElements<TElement = HTMLElement, T = TElement>(
         Array.from(it as any).forEach((i) => elementsAdd.add(i));
         return;
       }
-      if (typeof it === "string" && it.match(/^\s+</)) {
-        Array.from(createFragment(it).childNodes).forEach((i) =>
-          elementsAdd.add(i)
-        );
+      if (typeof it === "string") {
+        const itTrimed = trim(it);
+        if (rSelector.test(itTrimed[0])) {
+          Array.from(createFragment(it).childNodes).forEach((i) =>
+            elementsAdd.add(i)
+          );
+        } else {
+          elementsAdd.add(document.createTextNode(it))
+        }
 
         return;
       }
