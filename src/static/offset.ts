@@ -19,6 +19,7 @@ function setOffset<TElement extends HTMLElement>(
   // eslint-disable-next-line functional/no-let
   let curPosition, curLeft, curTop;
   const position = css(elem, "position"),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     props = {} as any;
 
   // Set position first, in-case top/left are set even on static elem

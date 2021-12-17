@@ -1,14 +1,17 @@
 import { isArrayLike } from "../utils/is";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function each<T = any, R = any, A = ArrayLike<T>>(
   array: A,
   callback: (this: T, value: T, index: number, array: A) => R
 ): A;
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function each<T, K extends keyof T, R = any>(
   obj: T,
   callback: (this: T, value: T[K], key: K, object: T) => R
 ): T;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 function each(obj: any, callback: any) {
   if (isArrayLike(obj)) {
     const { length } = obj;
