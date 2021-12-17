@@ -1,24 +1,26 @@
 import { curCSS } from "../static/css";
 
-export default new Map<
+const hooks = new Map<
   string,
   {
-    get: (
+    readonly get: (
       elem: HTMLElement,
       computed: boolean,
-      extra: boolean
+      extra: boolean | string
     ) => string | void;
   }
->({
-  opacity: {
-    get<TElement extends HTMLElement>(
-      elem: TElement,
-      computed: boolean
-    ): string | void {
-      if (computed) {
-        const ret = curCSS(elem, "opacity");
-        return ret === "" ? "1" : ret;
-      }
-    },
+>();
+
+hooks.set("opacity", {
+  get<TElement extends HTMLElement>(
+    elem: TElement,
+    computed: boolean
+  ): string | void {
+    if (computed) {
+      const ret = curCSS(elem, "opacity");
+      return ret === "" ? "1" : ret;
+    }
   },
 });
+
+export default hooks;

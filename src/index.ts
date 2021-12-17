@@ -16,7 +16,7 @@ export { default as map } from "./static/map";
 export { default as support } from "./static/isSupport";
 export { default as unique } from "./static/unique";
 export { default as text } from "./static/text";
-export { default as data, removeData, hasData } from "./static/text";
+export { default as data, removeData, hasData } from "./static/data";
 export { default as clone } from "./static/clone";
 export { default as cleanData } from "./static/cleanData";
 

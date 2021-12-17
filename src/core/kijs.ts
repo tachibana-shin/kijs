@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/ban-types */
 /* eslint-disable functional/no-loop-statement */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { attr, removeAttr } from "../static/attr";
+import attr, { removeAttr } from "../static/attr";
 import {
   addClass,
   hasClass,
@@ -98,7 +98,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
       }
     }
     if (isArrayLike(selector)) {
-      selector.forEach((i) => elements.add(i));
+      each(selector, (i) => elements.add(i));
     }
 
     // eslint-disable-next-line functional/no-let
@@ -762,7 +762,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
   text(content: string | number): this;
   text(content?: string | number): string | this {
     if (content === undefined) {
-      return getText(this);
+      return getText(this as any);
     }
 
     this.each((value) => {

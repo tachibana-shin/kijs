@@ -1,6 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import each from "../static/each";
-import ArrayLike from "../types/ArrayLike";
 
 function access<TElement = HTMLElement, Return = any>(
   elems: ArrayLike<TElement>,

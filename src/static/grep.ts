@@ -1,10 +1,10 @@
-export function grep<T = any>(
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export default function grep<T = any>(
   array: ArrayLike<T>,
-  callback: (item: T, index: number, array: typeof array) => boolean | void,
+  callback: (item: T, index: number, array: ArrayLike<T>) => boolean | void,
   invert = false
+  // eslint-disable-next-line functional/prefer-readonly-type
 ): T[] {
-  const { length } = array;
-
   return Array.prototype.filter.call(array, (item, index) => {
     if (callback(item, index, array) !== invert) {
       return true;

@@ -1,10 +1,8 @@
-/* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { isFunction } from "../utils/is";
 import valHooks from "../constants/valHooks";
+import { isFunction } from "../utils/is";
 
 import each from "./each";
-import text from "./text";
 
 const rreturn = /\r/g;
 
@@ -26,7 +24,7 @@ function $$value<TElement extends HTMLElement>(
       if (
         hooks &&
         "get" in hooks &&
-        (ret = hooks.get(elem, "value")) !== undefined
+        (ret = hooks.get?.(elem, "value")) !== undefined
       ) {
         return ret;
       }
@@ -80,7 +78,7 @@ function $$value<TElement extends HTMLElement>(
     if (
       !hooks ||
       !("set" in hooks) ||
-      hooks.set(elem, $val, "value") === undefined
+      hooks.set?.(elem, $val, "value") === undefined
     ) {
       // eslint-disable-next-line functional/immutable-data
       (elem as any).value = $val;

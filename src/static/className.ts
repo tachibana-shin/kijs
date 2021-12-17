@@ -1,6 +1,6 @@
 import { isFunction } from "../utils/is";
 
-import { attr } from "./attr";
+import attr from "./attr";
 import data from "./data";
 import each from "./each";
 

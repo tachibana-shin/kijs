@@ -1,38 +1,40 @@
-export default function getText<TElement = HTMLElement>(
-  elem: ArrayLike<TElement>
+import { isArrayLike } from "../utils/is";
+
+export default function getText<TElement extends Node>(
+  elems: ArrayLike<TElement> | TElement
 ): string {
   // eslint-disable-next-line functional/no-let
   let ret = "";
-  const nodeType = elem.nodeType;
 
-  if (!nodeType) {
+  const nodeType = isArrayLike(elems) ? false : (elems as TElement).nodeType;
+
+  if (isArrayLike(elems)) {
     // eslint-disable-next-line functional/no-let
     let node,
       i = 0;
-    // If no nodeType, this is expected to be an array
     // eslint-disable-next-line functional/no-loop-statement
-    while ((node = elem[i++])) {
-      // Do not traverse comment nodes
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      ret += getText(node as any);
+    while ((node = elems[i++])) {
+      ret += getText(node);
     }
   } else if (nodeType === 1 || nodeType === 9 || nodeType === 11) {
     // Use textContent for elements
     // innerText usage removed for consistency of new lines (jQuery #11153)
-    if (typeof elem.textContent === "string") {
-      return elem.textContent;
+    if (typeof elems.textContent === "string") {
+      return elems.textContent;
     } else {
       // Traverse its children
       // eslint-disable-next-line functional/no-loop-statement
-      for (elem = elem.firstChild; elem; elem = elem.nextSibling) {
-        ret += getText(elem);
+      for (
+        elems = elems.firstChild as unknown as TElement;
+        elems;
+        elems = elems.nextSibling as unknown as TElement
+      ) {
+        ret += getText(elems);
       }
     }
   } else if (nodeType === 3 || nodeType === 4) {
-    return elem.nodeValue;
+    return elems.nodeValue || "";
   }
-
-  // Do not include comment or processing instruction nodes
 
   return ret;
 }

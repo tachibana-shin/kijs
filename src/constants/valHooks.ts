@@ -1,21 +1,29 @@
-import { stripAndCollapse } from "./className";
+/* eslint-disable @typescript-eslint/no-explicit-any */
+import { stripAndCollapse } from "../static/className";
 import text from "../static/text";
+import value from "../static/value";
 
-export default new Map<
+const hooks = new Map<
   string,
   {
-    get?: (elem: HTMLElement, prop: "string") => string | null;
-    set?: (elem: HTMLElement, value: any, prop: "string") => string | null;
+    readonly get?: (elem: HTMLElement, prop: string) => string | null;
+    readonly set?: (
+      elem: HTMLElement,
+      value: any,
+      prop: string
+    ) => string | null;
   }
->({
-  option: {
-    get(elem: HTMLElement) {
-      const val = elem.getAttribute("value");
-      return val != null ? val : stripAndCollapse(text([elem]));
-    },
+>();
+
+hooks.set("option", {
+  get(elem: HTMLElement) {
+    const val = elem.getAttribute("value");
+    return val != null ? val : stripAndCollapse(text([elem]));
   },
-  select: {
-    get(elem: HTMLSelectElement): any {
+});
+hooks.set("select", {
+  get(elem): any {
+    if (elem instanceof HTMLSelectElement) {
       // eslint-disable-next-line functional/no-let
       let val, option, i;
       const options = elem.options,
@@ -33,7 +41,6 @@ export default new Map<
       // Loop through all the selected options
       // eslint-disable-next-line functional/no-loop-statement
       for (; i < max; i++) {
-        import { stripAndCollapse } from "./className";
         option = options[i];
 
         // Support: IE <=9 only
@@ -42,11 +49,13 @@ export default new Map<
           (option.selected || i === index) &&
           // Don't return options that are disabled or in a disabled optgroup
           !option.disabled &&
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           (!(option.parentNode as any)!.disabled ||
+            // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
             !(option.parentNode!.nodeName.toLowerCase(), "optgroup"))
         ) {
           // Get the specific value for the option
-          val = $$value(option as any);
+          val = value(option as any);
 
           // We don't need an array for one selects
           if (one) {
@@ -54,14 +63,17 @@ export default new Map<
           }
 
           // Multi-Selects return an array
+          // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
           (values as any)!.push(val);
         }
       }
 
       return values;
-    },
+    }
+  },
 
-    set(elem: HTMLSelectElement, value: any) {
+  set(elem, value): any {
+    if (elem instanceof HTMLSelectElement) {
       const options = elem.options,
         values = Array.from(value);
       // eslint-disable-next-line functional/no-let
@@ -89,6 +101,8 @@ export default new Map<
         elem.selectedIndex = -1;
       }
       return values;
-    },
+    }
   },
 });
+
+export default hooks;

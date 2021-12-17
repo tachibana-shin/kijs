@@ -1,9 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import propHooks from "../constants/propHooks";
 
-const rfocusable = /^(?:input|select|textarea|button)$/i,
-  rclickable = /^(?:a|area)$/i;
-
 const propFix = {
   for: "htmlr",
   class: "className",
@@ -33,7 +30,7 @@ export default function prop<TElement extends Element>(
     if (
       hooks &&
       "set" in hooks &&
-      (ret = hooks.set(elem, value, name)) !== undefined
+      (ret = hooks.set?.(elem, value, name)) !== undefined
     ) {
       return ret;
     }
@@ -42,7 +39,7 @@ export default function prop<TElement extends Element>(
     return ((elem as any)[name] = value);
   }
 
-  if (hooks && "get" in hooks && (ret = hooks.get(elem, name)) !== null) {
+  if (hooks && "get" in hooks && (ret = hooks.get?.(elem, name)) !== null) {
     return ret;
   }
 

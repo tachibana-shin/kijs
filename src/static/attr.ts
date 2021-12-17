@@ -1,13 +1,14 @@
-import support from "./isSupport";
-import prop from "./prop";
 import attrHooks from "../constants/attrHooks";
+
+import prop from "./prop";
 
 const matchBool =
   /^(?:checked|selected|async|autofocus|autoplay|controls|defer|disabled|hidden|ismap|loop|multiple|open|readonly|required|scoped)$/i;
 const rnothtmlwhite = /[^\x20\t\r\n\f]+/g;
 
 const boolHook = {
-  set(elem: HTMLInputElement, value: boolean, name: string): string | void {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  set(elem: Element, value: any, name: string): string | void {
     if (value === false) {
       removeAttr(elem, name);
     } else {
@@ -48,7 +49,6 @@ function attr<TElement extends Element>(
   // Grab necessary hook if one is defined
   if (nType !== 1) {
     hooks =
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       attrHooks.get(name.toLowerCase()) ||
       (matchBool.test(name) ? boolHook : undefined);
   }
@@ -62,7 +62,8 @@ function attr<TElement extends Element>(
     if (
       hooks &&
       "set" in hooks &&
-      (ret = hooks.set(elem, value, name)) !== undefined
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (ret = hooks.set?.(elem as any, value as any, name)) !== undefined
     ) {
       return ret;
     }
@@ -71,7 +72,7 @@ function attr<TElement extends Element>(
     return value;
   }
 
-  if (hooks && "get" in hooks && (ret = hooks.get(elem, name)) !== null) {
+  if (hooks && "get" in hooks && (ret = hooks.get?.(elem, name)) !== null) {
     return ret;
   }
 
@@ -98,4 +99,5 @@ function removeAttr<TElement extends Element>(
   }
 }
 
-export { attr, removeAttr };
+export default attr;
+export { removeAttr };
