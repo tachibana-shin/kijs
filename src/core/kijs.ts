@@ -23,14 +23,14 @@ import ready from "../static/ready";
 import style from "../static/style";
 import getText from "../static/text";
 import toParam from "../static/toParam";
+import trim from "../static/trim";
 import value from "../static/value";
-import type LikeArray from "../types/LikeArray";
 import createFragment from "../utils/createFragment";
 import getStyles from "../utils/getStyles";
 import { isArrayLike, isFunction, isObject } from "../utils/is";
 
 // eslint-disable-next-line functional/prefer-readonly-type
-type TypeOrArray<T> = T | T[] | readonly T[] | LikeArray<T>;
+type TypeOrArray<T> = T | T[] | readonly T[] | ArrayLike<T>;
 // type Node = Element | Text | Comment | Document | DocumentFragment;
 type htmlString = string;
 type Selector = keyof HTMLElementTagNameMap & keyof SVGElementTagNameMap;
@@ -82,7 +82,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     const elements = new Set<TElement>();
     if (typeof selector === "string") {
       // document
-      selector = selector.trim();
+      selector = trim(selector);
 
       if (rSelector.test(selector[0])) {
         // this is query
@@ -156,7 +156,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
   get(index: number): TElement | void {
     return this[index < -1 ? this.length + index : index];
   }
-  pushStack(elements: LikeArray<TElement>): Kijs<TElement> {
+  pushStack(elements: ArrayLike<TElement>): Kijs<TElement> {
     return new Kijs(elements, this);
   }
   slice(start: number, end?: number): Kijs<TElement> {
@@ -792,11 +792,11 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     // eslint-disable-next-line functional/functional-parameters
     ...contents: readonly (
       | CustomElementAdd
-      | LikeArray<CustomElementAdd>
+      | ArrayLike<CustomElementAdd>
       | ((
           index: number,
           html: string
-        ) => CustomElementAdd | LikeArray<CustomElementAdd>)
+        ) => CustomElementAdd | ArrayLike<CustomElementAdd>)
     )[]
   ): this {
     insertElements(
@@ -812,11 +812,11 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     // eslint-disable-next-line functional/functional-parameters
     ...contents: readonly (
       | CustomElementAdd
-      | LikeArray<CustomElementAdd>
+      | ArrayLike<CustomElementAdd>
       | ((
           index: number,
           html: string
-        ) => CustomElementAdd | LikeArray<CustomElementAdd>)
+        ) => CustomElementAdd | ArrayLike<CustomElementAdd>)
     )[]
   ): this {
     insertElements(
@@ -832,11 +832,11 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     // eslint-disable-next-line functional/functional-parameters
     ...contents: readonly (
       | CustomElementAdd
-      | LikeArray<CustomElementAdd>
+      | ArrayLike<CustomElementAdd>
       | ((
           index: number,
           html: string
-        ) => CustomElementAdd | LikeArray<CustomElementAdd>)
+        ) => CustomElementAdd | ArrayLike<CustomElementAdd>)
     )[]
   ): this {
     insertElements(
@@ -852,11 +852,11 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     // eslint-disable-next-line functional/functional-parameters
     ...contents: readonly (
       | CustomElementAdd
-      | LikeArray<CustomElementAdd>
+      | ArrayLike<CustomElementAdd>
       | ((
           index: number,
           html: string
-        ) => CustomElementAdd | LikeArray<CustomElementAdd>)
+        ) => CustomElementAdd | ArrayLike<CustomElementAdd>)
     )[]
   ): this {
     insertElements(
@@ -892,11 +892,11 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     // eslint-disable-next-line functional/functional-parameters
     ...contents: readonly (
       | CustomElementAdd
-      | LikeArray<CustomElementAdd>
+      | ArrayLike<CustomElementAdd>
       | ((
           index: number,
           html: string
-        ) => CustomElementAdd | LikeArray<CustomElementAdd>)
+        ) => CustomElementAdd | ArrayLike<CustomElementAdd>)
     )[]
   ): this {
     insertElements(
@@ -911,23 +911,23 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     return this;
   }
   appendTo(selector: ParamNewKijs<Element>): this {
-    new Kijs(selector).append(this as unknown as LikeArray<Element>);
+    new Kijs(selector).append(this as unknown as ArrayLike<Element>);
     return this;
   }
   prependTo(selector: ParamNewKijs<Element>): this {
-    new Kijs(selector).prepend(this as unknown as LikeArray<Element>);
+    new Kijs(selector).prepend(this as unknown as ArrayLike<Element>);
     return this;
   }
   insertAfter(selector: ParamNewKijs<Element>): this {
-    new Kijs(selector).after(this as unknown as LikeArray<Element>);
+    new Kijs(selector).after(this as unknown as ArrayLike<Element>);
     return this;
   }
   insertBefore(selector: ParamNewKijs<Element>): this {
-    new Kijs(selector).before(this as unknown as LikeArray<Element>);
+    new Kijs(selector).before(this as unknown as ArrayLike<Element>);
     return this;
   }
   replaceAll(selector: ParamNewKijs<Element>): this {
-    new Kijs(selector).replaceWith(this as unknown as LikeArray<Element>);
+    new Kijs(selector).replaceWith(this as unknown as ArrayLike<Element>);
     return this;
   }
   css<Prop extends keyof CSSStyleDeclaration>(
@@ -1546,19 +1546,19 @@ type Events = {
 type EventOf<T extends keyof Events> = Events[T];
 
 function insertElements<TElement = HTMLElement, T = TElement>(
-  elems: LikeArray<TElement>,
+  elems: ArrayLike<TElement>,
   action: (item: Element, child: any) => void,
   callParm: (item: Element) => T,
   // eslint-disable-next-line functional/functional-parameters
   ...contents: readonly (
     | CustomElementAdd
-    | LikeArray<CustomElementAdd>
+    | ArrayLike<CustomElementAdd>
     | Kijs<TElement, T>
     | Kijs
     | ((
         index: number,
         html: T
-      ) => CustomElementAdd | LikeArray<CustomElementAdd>)
+      ) => CustomElementAdd | ArrayLike<CustomElementAdd>)
   )[]
 ): void {
   each(elems, (elem) => {

@@ -64,10 +64,8 @@ div.style.backgroundClip = "content-box";
 
 (div.cloneNode(true) as HTMLElement).style.backgroundClip = "";
 // eslint-disable-next-line functional/no-let
-let input = document.createElement("input"),
-  // eslint-disable-next-line prefer-const
-  select = document.createElement("select"),
-  // eslint-disable-next-line prefer-const
+let input = document.createElement("input");
+const select = document.createElement("select"),
   opt = select.appendChild(document.createElement("option"));
 
 input.type = "checkbox";
@@ -103,16 +101,6 @@ export default {
     computeStyleTests();
     return scrollboxSizeVal;
   },
-
-  // Support: IE 9 - 11+, Edge 15 - 18+
-  // IE/Edge misreport `getComputedStyle` of table rows with width/height
-  // set in CSS while `offset*` properties report correct values.
-  // Behavior in IE 9 is more subtle than in newer versions & it passes
-  // some versions of this test; make sure not to make it pass there!
-  //
-  // Support: Firefox 70+
-  // Only Firefox includes border widths
-  // in computed dimensions. (gh-4529)
   reliableTrDimensions() {
     // eslint-disable-next-line functional/no-let
     let table, tr, trChild, trStyle;
@@ -125,18 +113,8 @@ export default {
         "position:absolute;left:-11111px;border-collapse:separate";
       tr.style.cssText = "border:1px solid";
 
-      // Support: Chrome 86+
-      // Height set through cssText does not get applied.
-      // Computed height then comes back as 0.
       tr.style.height = "1px";
       trChild.style.height = "9px";
-
-      // Support: Android 8 Chrome 86+
-      // In our bodyBackground.html iframe,
-      // display for all div elements is set to "inline",
-      // which causes a problem only in Android 8 Chrome 86.
-      // Ensuring the div is display: block
-      // gets around this issue.
       trChild.style.display = "block";
 
       document.documentElement

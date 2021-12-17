@@ -1,7 +1,5 @@
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import LikeArray from "../types/LikeArray";
-
 import each from "./each";
 
 export const weakCacheEvent = new WeakMap<
@@ -21,20 +19,20 @@ export const weakCacheEvent = new WeakMap<
 const weakCacheFunctionEvent = new WeakMap<Function, Function>();
 
 function on<N extends string, E extends Event, TElement = HTMLElement>(
-  elements: LikeArray<TElement>,
+  elements: ArrayLike<TElement>,
   name: N,
   callback: (this: TElement, event: E) => void
 ): void;
 
 function on<N extends string, E extends Event, TElement = HTMLElement>(
-  elements: LikeArray<TElement>,
+  elements: ArrayLike<TElement>,
   name: N,
   selector: string,
   callback: (this: TElement, event: E) => void
 ): void;
 
 function on<N extends string, TElement = HTMLElement>(
-  elements: LikeArray<TElement>,
+  elements: ArrayLike<TElement>,
   name: N,
   selector: any,
   callback?: any
@@ -77,20 +75,20 @@ function on<N extends string, TElement = HTMLElement>(
 }
 
 function one<N extends string, E extends Event, TElement = HTMLElement>(
-  elements: LikeArray<TElement>,
+  elements: ArrayLike<TElement>,
   name: N,
   callback: (this: TElement, event: E) => void
 ): void;
 
 function one<N extends string, E extends Event, TElement = HTMLElement>(
-  elements: LikeArray<TElement>,
+  elements: ArrayLike<TElement>,
   name: N,
   selector: string,
   callback: (this: TElement, event: E) => void
 ): void;
 
 function one<N extends string, E extends Event, TElement = HTMLElement>(
-  elements: LikeArray<TElement>,
+  elements: ArrayLike<TElement>,
   name: N,
   selector: any,
   callback?: (this: TElement, event: E) => void
@@ -116,22 +114,22 @@ function one<N extends string, E extends Event, TElement = HTMLElement>(
   }
 }
 
-// function off<TElement= HTMLElement>(elements: LikeArray<TElement>): void;
+// function off<TElement= HTMLElement>(elements: ArrayLike<TElement>): void;
 function off<N extends string, E extends Event, TElement = HTMLElement>(
-  elements: LikeArray<TElement>,
+  elements: ArrayLike<TElement>,
   name?: N,
   callback?: (this: TElement, event: E) => void
 ): void;
 
 function off<N extends string, E extends Event, TElement = HTMLElement>(
-  elements: LikeArray<TElement>,
+  elements: ArrayLike<TElement>,
   name: N,
   selector: string,
   callback: (this: TElement, event: E) => void
 ): void;
 
 function off<N extends string, E extends Event, TElement = HTMLElement>(
-  elements: LikeArray<TElement>,
+  elements: ArrayLike<TElement>,
   name: N,
   selector: any,
   callback?: (this: TElement, event: E) => void

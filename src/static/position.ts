@@ -5,11 +5,8 @@ export default function position<TElement extends HTMLElement>(
   elem: TElement
 ): Offset {
   // eslint-disable-next-line functional/no-let
-  let offsetParent,
-    offset,
-    doc,
-    // eslint-disable-next-line prefer-const
-    parentOffset = { top: 0, left: 0 };
+  let offsetParent, offset, doc;
+  const parentOffset = { top: 0, left: 0 };
 
   // position:fixed elements are offset from the viewport, which itself always has zero offset
   if (css(elem, "position") === "fixed") {

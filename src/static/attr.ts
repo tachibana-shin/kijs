@@ -1,6 +1,6 @@
 import support from "./isSupport";
 import prop from "./prop";
-import attrHooks from "../constants/attrHooks"
+import attrHooks from "../constants/attrHooks";
 
 const matchBool =
   /^(?:checked|selected|async|autofocus|autoplay|controls|defer|disabled|hidden|ismap|loop|multiple|open|readonly|required|scoped)$/i;
@@ -49,7 +49,7 @@ function attr<TElement extends Element>(
   if (nType !== 1) {
     hooks =
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (attrHooks).get(name.toLowerCase()) ||
+      attrHooks.get(name.toLowerCase()) ||
       (matchBool.test(name) ? boolHook : undefined);
   }
 

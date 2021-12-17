@@ -1,7 +1,5 @@
-import LikeArray from "../types/LikeArray";
-
 export default function getText<TElement = HTMLElement>(
-  elem: LikeArray<TElement>
+  elem: ArrayLike<TElement>
 ): string {
   // eslint-disable-next-line functional/no-let
   let ret = "";

@@ -17,9 +17,9 @@ function extend(this: any) {
     clone,
     target = arguments[0] || {},
     i = 1,
-    // eslint-disable-next-line prefer-const
-    length = arguments.length,
     deep = false;
+
+  const length = arguments.length;
 
   // Handle a deep copy situation
   if (typeof target === "boolean") {

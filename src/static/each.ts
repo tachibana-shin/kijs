@@ -1,8 +1,6 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import type LikeArray from "../types/LikeArray";
 import { isArrayLike } from "../utils/is";
 
-function each<T = any, R = any, A = LikeArray<T>>(
+function each<T = any, R = any, A = ArrayLike<T>>(
   array: A,
   callback: (this: T, value: T, index: number, array: A) => R
 ): A;

@@ -58,7 +58,7 @@ function ready(wait?: any) {
   return queue;
 }
 
-export function holdReady(wait: boolean): void {
+function holdReady(wait: boolean): void {
   if (wait) {
     readyWait++;
   } else {
@@ -66,4 +66,13 @@ export function holdReady(wait: boolean): void {
   }
 }
 
+function $isReady(): boolean {
+  return isReady;
+}
+function $readyWait(): number {
+  return readyWait;
+}
+
 export default ready;
+
+export { holdReady, $isReady as isReady, $readyWait as readyWait };

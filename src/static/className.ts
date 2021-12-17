@@ -1,4 +1,3 @@
-import LikeArray from "../types/LikeArray";
 import { isFunction } from "../utils/is";
 
 import { attr } from "./attr";
@@ -27,7 +26,7 @@ export function stripAndCollapse(value: string): string {
 }
 
 function addClass<TElement extends HTMLElement>(
-  elems: LikeArray<TElement>,
+  elems: ArrayLike<TElement>,
   value:
     | string
     | readonly string[]
@@ -50,7 +49,7 @@ function addClass<TElement extends HTMLElement>(
       let cur = elem.nodeType === 1 && " " + stripAndCollapse(curValue) + " ";
 
       if (cur) {
-        each(classes, ( clazz) => {
+        each(classes, (clazz) => {
           if ((cur as string).includes(" " + clazz + " ") === false) {
             cur += clazz + " ";
           }
@@ -67,7 +66,7 @@ function addClass<TElement extends HTMLElement>(
 }
 
 function removeClass<TElement extends HTMLElement>(
-  elems: LikeArray<TElement>,
+  elems: ArrayLike<TElement>,
   value?:
     | string
     | readonly string[]
@@ -114,11 +113,11 @@ function removeClass<TElement extends HTMLElement>(
   }
 }
 function toggleClass<TElement extends HTMLElement>(
-  elems: LikeArray<TElement>,
+  elems: ArrayLike<TElement>,
   value: string | readonly string[]
 ): void;
 function toggleClass<TElement extends HTMLElement>(
-  elems: LikeArray<TElement>,
+  elems: ArrayLike<TElement>,
   value:
     | string
     | readonly string[]
@@ -130,7 +129,7 @@ function toggleClass<TElement extends HTMLElement>(
   stateVal: boolean
 ): void;
 function toggleClass<TElement extends HTMLElement>(
-  elems: LikeArray<TElement>,
+  elems: ArrayLike<TElement>,
   value:
     | string
     | readonly string[]
@@ -192,7 +191,7 @@ function toggleClass<TElement extends HTMLElement>(
 }
 
 function hasClass<TElement extends HTMLElement>(
-  elems: LikeArray<TElement>,
+  elems: ArrayLike<TElement>,
   selector: string
 ): boolean {
   // eslint-disable-next-line functional/no-let

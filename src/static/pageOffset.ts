@@ -1,5 +1,3 @@
-import LikeArray from "../types/LikeArray";
-
 import each from "./each";
 
 const props = {
@@ -8,19 +6,19 @@ const props = {
 };
 
 function pageOffset<TElement = HTMLElement>(
-  elems: LikeArray<TElement>,
+  elems: ArrayLike<TElement>,
   prop: "scrollLeft" | "scrollTop",
   val: number
 ): void;
 
 function pageOffset<TElement = HTMLElement>(
-  elems: LikeArray<TElement>,
+  elems: ArrayLike<TElement>,
   prop: "scrollLeft" | "scrollTop"
 ): number;
 
 function pageOffset(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  elems: LikeArray<any>,
+  elems: ArrayLike<any>,
   prop: "scrollLeft" | "scrollTop",
   val?: number
 ) {

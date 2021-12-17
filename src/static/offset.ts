@@ -1,7 +1,5 @@
 /* eslint-disable functional/functional-parameters */
-
 /* eslint-disable functional/immutable-data */
-import LikeArray from "../types/LikeArray";
 import { isFunction } from "../utils/is";
 
 import css from "./css";
@@ -19,16 +17,8 @@ function setOffset<TElement extends HTMLElement>(
   i = 0
 ) {
   // eslint-disable-next-line functional/no-let
-  let curPosition,
-    curLeft,
-    curCSSTop,
-    curTop,
-    curOffset,
-    curCSSLeft,
-    calculatePosition,
-    // eslint-disable-next-line prefer-const
-    position = css(elem, "position"),
-    // eslint-disable-next-line prefer-const, @typescript-eslint/no-explicit-any
+  let curPosition, curLeft, curTop;
+  const position = css(elem, "position"),
     props = {} as any;
 
   // Set position first, in-case top/left are set even on static elem
@@ -36,14 +26,10 @@ function setOffset<TElement extends HTMLElement>(
     elem.style.position = "relative";
   }
 
-  // eslint-disable-next-line prefer-const
-  curOffset = offset(elem);
-  // eslint-disable-next-line prefer-const
-  curCSSTop = css(elem, "top") as string;
-  // eslint-disable-next-line prefer-const
-  curCSSLeft = css(elem, "left") as string;
-  // eslint-disable-next-line prefer-const
-  calculatePosition =
+  const curOffset = offset(elem);
+  const curCSSTop = css(elem, "top") as string;
+  const curCSSLeft = css(elem, "left") as string;
+  const calculatePosition =
     (position === "absolute" || position === "fixed") &&
     (curCSSTop + curCSSLeft).indexOf("auto") > -1;
 
@@ -81,7 +67,7 @@ function offset<TElement extends HTMLElement>(
 function offset<TElement extends HTMLElement>(elem: TElement): Offset;
 
 function offset<TElement extends HTMLElement>(
-  elems: LikeArray<TElement>,
+  elems: ArrayLike<TElement>,
   options?: Offset | ((index: number, currentOffset: Offset) => Offset)
 ) {
   // Preserve chaining for setter

@@ -1,7 +1,10 @@
-export default new Map<string, {
-  set?: <T = Node>(elem: T, value: string) => string | void;
-  get?: <T = Node>(elem: T, value: string, name: string) => string
-}>({
+export default new Map<
+  string,
+  {
+    set?: <T = Node>(elem: T, value: string) => string | void;
+    get?: <T = Node>(elem: T, value: string, name: string) => string;
+  }
+>({
   type: {
     set(elem: HTMLInputElement, value: string): string | void {
       if (

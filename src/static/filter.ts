@@ -1,10 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/prefer-readonly-type */
-import LikeArray from "../types/LikeArray";
-
 import each from "./each";
 
-function filter<T = any, A = LikeArray<T>>(
+function filter<T = any, A = ArrayLike<T>>(
   array: A,
   callback: (this: T, value: T, index: number, array: A) => void | boolean
 ): T[];

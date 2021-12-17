@@ -1,20 +1,20 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import each from "../static/each";
-import LikeArray from "../types/LikeArray";
+import ArrayLike from "../types/ArrayLike";
 
 function access<TElement = HTMLElement, Return = any>(
-  elems: LikeArray<TElement>,
+  elems: ArrayLike<TElement>,
   callback: (elem: TElement, index: number) => void,
   modeReturn: Return
 ): Return;
 function access<TElement = HTMLElement, Return = any>(
-  elems: LikeArray<TElement>,
+  elems: ArrayLike<TElement>,
   callback: (elem: TElement, index: number) => Return,
   modeReturn: true,
   reduce: boolean
 ): Return;
 function access<TElement = HTMLElement, Return = any>(
-  elems: LikeArray<TElement>,
+  elems: ArrayLike<TElement>,
   callback: (elem: TElement, index: number) => Return,
   modeReturn: true | Return,
   reduce = false

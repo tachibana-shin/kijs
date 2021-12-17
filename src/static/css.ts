@@ -19,12 +19,9 @@ export function curCSS<TElement extends HTMLElement>(
   name: string,
   computed?: Record<string, any>
 ) {
-  let width,
-    minWidth,
-    maxWidth,
-    ret,
-    // eslint-disable-next-line prefer-const
-    style = (elem as any).style;
+  let width, minWidth, maxWidth, ret;
+
+  const style = (elem as any).style;
 
   computed = computed || getStyles(elem);
 
@@ -85,14 +82,11 @@ function css<TElement extends HTMLElement>(
 function css<TElement extends HTMLElement>(
   elem: TElement,
   name: string,
-  extra: boolean|string = false,
+  extra: boolean | string = false,
   styles?: Record<string, any>
 ) {
-  let val,
-    num,
-    // eslint-disable-next-line prefer-const
-    origName = camelCase(name),
-    // eslint-disable-next-line prefer-const
+  let val, num;
+  const origName = camelCase(name),
     isCustomProp = rcustomProp.test(name);
 
   // Make sure that we're working with the right name. We don't
@@ -102,7 +96,7 @@ function css<TElement extends HTMLElement>(
     name = finalPropName(origName);
   }
 
-  const hooks = (cssHooks).get(origName);
+  const hooks = cssHooks.get(origName);
 
   // If a hook was provided get the computed value from there
   if (hooks) {

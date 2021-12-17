@@ -2,10 +2,7 @@
 const weakCache = new WeakMap<any, any>();
 
 function data<T extends Record<any, any>>(object: any): T;
-function data<T = any>(
-  object: any,
-  key: string | number | symbol
-): T;
+function data<T = any>(object: any, key: string | number | symbol): T;
 function data<V extends Record<any, any>, T = any>(
   object: any,
   key: string | number | symbol,
@@ -65,5 +62,9 @@ function removeData(object: any, key?: any) {
   }
 }
 
-export { removeData };
+function hasData(object: any): boolean {
+  return weakCache.has(object);
+}
+
+export { removeData, hasData };
 export default data;

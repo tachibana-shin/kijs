@@ -53,7 +53,7 @@ export default function style<TElement extends HTMLElement>(
 
   // Make sure that we're working with the right name
   // eslint-disable-next-line functional/no-let
-  let ret, type, hooks;
+  let ret, type;
   const origName = camelCase(name),
     isCustomProp = crustalProp.test(name),
     style = elem.style;
@@ -62,8 +62,7 @@ export default function style<TElement extends HTMLElement>(
     name = finalPropName(origName);
   }
 
-  // eslint-disable-next-line prefer-const
-  hooks = (cssHooks as any)[name] || (cssHooks as any)[origName];
+  const hooks = (cssHooks as any)[name] || (cssHooks as any)[origName];
 
   // Check if we're setting a value
   if (value !== undefined) {
