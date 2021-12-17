@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable functional/no-let */
-import cssHooks from "../constants/cssHooks";
+import cssHooks from "../hooks/cssHooks";
 import getStyles from "../utils/getStyles";
 
 import camelCase from "./camelCase";

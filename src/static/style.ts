@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import cssHooks from "../constants/cssHooks";
 import cssNumber from "../constants/cssNumber";
 import cssProps from "../constants/cssProps";
+import cssHooks from "../hooks/cssHooks";
 
 import camelCase from "./camelCase";
 

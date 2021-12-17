@@ -1,4 +1,4 @@
-import attrHooks from "../constants/attrHooks";
+import attrHooks from "../hooks/attrHooks";
 
 import prop from "./prop";
 

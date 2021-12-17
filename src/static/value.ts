@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import valHooks from "../constants/valHooks";
+import valHooks from "../hooks/valHooks";
 import { isFunction } from "../utils/is";
 
 import each from "./each";

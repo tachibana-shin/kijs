@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import propHooks from "../constants/propHooks";
+import propHooks from "../hooks/propHooks";
 
 const propFix = {
   for: "htmlr",

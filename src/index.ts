@@ -20,10 +20,10 @@ export { default as data, removeData, hasData } from "./static/data";
 export { default as clone } from "./static/clone";
 export { default as cleanData } from "./static/cleanData";
 
-export { default as attrHooks } from "./constants/attrHooks";
-export { default as cssHooks } from "./constants/cssHooks";
-export { default as propHooks } from "./constants/propHooks";
-export { default as valHooks } from "./constants/valHooks";
+export { default as attrHooks } from "./hooks/attrHooks";
+export { default as cssHooks } from "./hooks/cssHooks";
+export { default as propHooks } from "./hooks/propHooks";
+export { default as valHooks } from "./hooks/valHooks";
 
 export { default as style } from "./static/style";
 export { default as css } from "./static/css";
