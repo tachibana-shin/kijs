@@ -90,7 +90,6 @@ function css<TElement extends HTMLElement>(
 ) {
   let val,
     num,
-    hooks,
     // eslint-disable-next-line prefer-const
     origName = camelCase(name),
     // eslint-disable-next-line prefer-const
@@ -103,12 +102,10 @@ function css<TElement extends HTMLElement>(
     name = finalPropName(origName);
   }
 
-  // Try prefixed name followed by the unprefixed name
-  // eslint-disable-next-line prefer-const
-  hooks = (cssHooks as any)[origName];
+  const hooks = (cssHooks).get(origName);
 
   // If a hook was provided get the computed value from there
-  if (hooks && "get" in hooks) {
+  if (hooks) {
     val = hooks.get(elem, true, extra);
   }
 

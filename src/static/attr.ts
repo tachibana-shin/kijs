@@ -1,29 +1,11 @@
 import support from "./isSupport";
 import prop from "./prop";
+import attrHooks from "../constants/attrHooks"
 
 const matchBool =
   /^(?:checked|selected|async|autofocus|autoplay|controls|defer|disabled|hidden|ismap|loop|multiple|open|readonly|required|scoped)$/i;
 const rnothtmlwhite = /[^\x20\t\r\n\f]+/g;
 
-const attrHooks = {
-  type: {
-    set(elem: HTMLInputElement, value: string): string | void {
-      if (
-        !support.radioValue &&
-        value === "radio" &&
-        elem.nodeName === "INPUT"
-      ) {
-        const val = elem.value;
-        elem.setAttribute("type", value);
-        if (val) {
-          // eslint-disable-next-line functional/immutable-data
-          elem.value = val;
-        }
-        return value;
-      }
-    },
-  },
-};
 const boolHook = {
   set(elem: HTMLInputElement, value: boolean, name: string): string | void {
     if (value === false) {
@@ -67,7 +49,7 @@ function attr<TElement extends Element>(
   if (nType !== 1) {
     hooks =
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (attrHooks as any)[name.toLowerCase()] ||
+      (attrHooks).get(name.toLowerCase()) ||
       (matchBool.test(name) ? boolHook : undefined);
   }
 
