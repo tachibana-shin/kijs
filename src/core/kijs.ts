@@ -1341,23 +1341,38 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
       : this.off(name, selector || "*", callback);
   }
 
-  readonly height = (callSizeof("height", "content") as any).bind(
-    this
-  ) as FnSize<this>;
-  readonly innerHeight = (callSizeof("height", "padding") as any).bind(
-    this
-  ) as FnSize<this>;
-  readonly outerHeight = (callSizeof("height") as any).bind(
-    this
-  ) as FnSize<this>;
-  readonly width = (callSizeof("width", "content") as any).bind(
-    this
-  ) as FnSize<this>;
-  readonly innerWidth = (callSizeof("width", "padding") as any).bind(
-    this
-  ) as FnSize<this>;
-  readonly outerWidth = (callSizeof("width") as any).bind(this) as FnSize<this>;
-
+  height(): number;
+  height(value: number, margin?: boolean): this;
+  height(value?: number, margin = false): this | number {
+    return callSizeof.call(this, "height", "content", value, margin);
+  }
+  innerHeight(): number;
+  innerHeight(value: number, margin?: boolean): this;
+  innerHeight(value?: number, margin = false): this | number {
+    return callSizeof.call(this, "height", "padding", value, margin);
+  }
+  outerHeight(): number;
+  outerHeight(value: number, margin?: boolean): this;
+  outerHeight(value?: number, margin = false): this | number {
+    return callSizeof.call(this, "height", "", value, margin);
+  }
+  
+  width(): number;
+  width(value: number, margin?: boolean): this;
+  width(value?: number, margin = false): this | number {
+    return callSizeof.call(this, "width", "content", value, margin);
+  }
+  innerWidth(): number;
+  innerWidth(value: number, margin?: boolean): this;
+  innerWidth(value?: number, margin = false): this | number {
+    return callSizeof.call(this, "width", "padding", value, margin);
+  }
+  outerWidth(): number;
+  outerWidth(value: number, margin?: boolean): this;
+  outerWidth(value?: number, margin = false): this | number {
+    return callSizeof.call(this, "width", "", value, margin);
+  }
+  
   blur(callback?: (event: EventOf<"blur">) => void): this {
     return callback === void 0
       ? this.trigger("blur")
@@ -1475,13 +1490,12 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
   }
 }
 
-type FnSize<T> = {
-  (): number;
-  (value: number): T;
-};
 function callSizeof(
+  this: Kijs<Element>,
   type: "height" | "width",
-  defaultExtra: "padding" | "content" | "" = ""
+  defaultExtra: "padding" | "content" | "",
+   value: number,
+   margin = false
 ) {
   const name = type.toUpperCase();
   const funcName = {
@@ -1490,7 +1504,6 @@ function callSizeof(
     "": "outer" + name,
   }[defaultExtra];
 
-  return function (this: Kijs<Element>, value: number, margin = false) {
     const extra = !!defaultExtra || (margin === true ? "margin" : "border");
 
     // eslint-disable-next-line functional/no-let
@@ -1535,7 +1548,7 @@ function callSizeof(
     });
 
     return result === void 0 ? this : result;
-  };
+  
 }
 
 type Events = {
