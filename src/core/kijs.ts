@@ -1343,33 +1343,33 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
 
   height(): number;
   height(value: number, margin?: boolean): this;
-  height(value?: number, margin = false): this | number {
+  height(value?: number, margin = false): any {
     return callSizeof.call(this, "height", "content", value, margin);
   }
   innerHeight(): number;
   innerHeight(value: number, margin?: boolean): this;
-  innerHeight(value?: number, margin = false): this | number {
+  innerHeight(value?: number, margin = false): any {
     return callSizeof.call(this, "height", "padding", value, margin);
   }
   outerHeight(): number;
   outerHeight(value: number, margin?: boolean): this;
-  outerHeight(value?: number, margin = false): this | number {
+  outerHeight(value?: number, margin = false): any {
     return callSizeof.call(this, "height", "", value, margin);
   }
 
   width(): number;
   width(value: number, margin?: boolean): this;
-  width(value?: number, margin = false): this | number {
+  width(value?: number, margin = false): any {
     return callSizeof.call(this, "width", "content", value, margin);
   }
   innerWidth(): number;
   innerWidth(value: number, margin?: boolean): this;
-  innerWidth(value?: number, margin = false): this | number {
+  innerWidth(value?: number, margin = false): any {
     return callSizeof.call(this, "width", "padding", value, margin);
   }
   outerWidth(): number;
   outerWidth(value: number, margin?: boolean): this;
-  outerWidth(value?: number, margin = false): this | number {
+  outerWidth(value?: number, margin = false): any {
     return callSizeof.call(this, "width", "", value, margin);
   }
 
@@ -1494,7 +1494,7 @@ function callSizeof(
   this: any,
   type: "height" | "width",
   defaultExtra: "padding" | "content" | "",
-  value: number,
+  value?: number,
   margin = false
 ) {
   const name = type.toUpperCase();
@@ -1507,8 +1507,8 @@ function callSizeof(
   const extra = !!defaultExtra || (margin === true ? "margin" : "border");
 
   // eslint-disable-next-line functional/no-let
-  let result: number;
-  this.each((elem) => {
+  let result: number|void;
+  this.each((elem: Element) => {
     // eslint-disable-next-line functional/no-let
     let doc;
 
@@ -1547,7 +1547,9 @@ function callSizeof(
     style(elem as any, type, value, extra);
   });
 
-  return result === void 0 ? this : result;
+  // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+  // @ts-ignore
+  return result === undefined ? this : result;
 }
 
 type Events = {
