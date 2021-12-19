@@ -1356,7 +1356,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
   outerHeight(value?: number, margin = false): this | number {
     return callSizeof.call(this, "height", "", value, margin);
   }
-  
+
   width(): number;
   width(value: number, margin?: boolean): this;
   width(value?: number, margin = false): this | number {
@@ -1372,7 +1372,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
   outerWidth(value?: number, margin = false): this | number {
     return callSizeof.call(this, "width", "", value, margin);
   }
-  
+
   blur(callback?: (event: EventOf<"blur">) => void): this {
     return callback === void 0
       ? this.trigger("blur")
@@ -1491,11 +1491,11 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
 }
 
 function callSizeof(
-  this: Kijs<Element>,
+  this: Kijs,
   type: "height" | "width",
   defaultExtra: "padding" | "content" | "",
-   value: number,
-   margin = false
+  value: number,
+  margin = false
 ) {
   const name = type.toUpperCase();
   const funcName = {
@@ -1504,51 +1504,50 @@ function callSizeof(
     "": "outer" + name,
   }[defaultExtra];
 
-    const extra = !!defaultExtra || (margin === true ? "margin" : "border");
+  const extra = !!defaultExtra || (margin === true ? "margin" : "border");
 
+  // eslint-disable-next-line functional/no-let
+  let result;
+  this.each((elem) => {
     // eslint-disable-next-line functional/no-let
-    let result;
-    this.each((elem) => {
-      // eslint-disable-next-line functional/no-let
-      let doc;
+    let doc;
 
-      if ((elem as any).window === elem) {
-        // $( window ).outerWidth/Height return w/h including scrollbars (gh-1729)
-        result =
-          funcName.indexOf("outer") === 0
-            ? (elem as any)["inner" + name]
-            : (elem as any).document.documentElement["client" + name];
-        return false;
-      }
+    if ((elem as any).window === elem) {
+      // $( window ).outerWidth/Height return w/h including scrollbars (gh-1729)
+      result =
+        funcName.indexOf("outer") === 0
+          ? (elem as any)["inner" + name]
+          : (elem as any).document.documentElement["client" + name];
+      return false;
+    }
 
-      // Get document width or height
-      if (elem.nodeType === 9) {
-        doc = (elem as any).documentElement;
+    // Get document width or height
+    if (elem.nodeType === 9) {
+      doc = (elem as any).documentElement;
 
-        // Either scroll[Width/Height] or offset[Width/Height] or client[Width/Height],
-        // whichever is greatest
-        result = Math.max(
-          (elem as any).body["scroll" + name],
-          doc["scroll" + name],
-          (elem as any).body["offset" + name],
-          doc["offset" + name],
-          doc["client" + name]
-        );
+      // Either scroll[Width/Height] or offset[Width/Height] or client[Width/Height],
+      // whichever is greatest
+      result = Math.max(
+        (elem as any).body["scroll" + name],
+        doc["scroll" + name],
+        (elem as any).body["offset" + name],
+        doc["offset" + name],
+        doc["client" + name]
+      );
 
-        return false;
-      }
+      return false;
+    }
 
-      if (value === undefined) {
-        result = css(elem as any, type, extra);
+    if (value === undefined) {
+      result = css(elem as any, type, extra);
 
-        return false;
-      }
+      return false;
+    }
 
-      style(elem as any, type, value, extra);
-    });
+    style(elem as any, type, value, extra);
+  });
 
-    return result === void 0 ? this : result;
-  
+  return result === void 0 ? this : result;
 }
 
 type Events = {
