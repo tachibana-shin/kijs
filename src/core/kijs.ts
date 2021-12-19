@@ -1343,33 +1343,33 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
 
   height(): number;
   height(value: number, margin?: boolean): this;
-  height(value?: number, margin = false): this | number {
+  height(value?: number, margin = false): any {
     return callSizeof.call(this, "height", "content", value, margin);
   }
   innerHeight(): number;
   innerHeight(value: number, margin?: boolean): this;
-  innerHeight(value?: number, margin = false): this | number {
+  innerHeight(value?: number, margin = false): any {
     return callSizeof.call(this, "height", "padding", value, margin);
   }
   outerHeight(): number;
   outerHeight(value: number, margin?: boolean): this;
-  outerHeight(value?: number, margin = false): this | number {
+  outerHeight(value?: number, margin = false): any {
     return callSizeof.call(this, "height", "", value, margin);
   }
 
   width(): number;
   width(value: number, margin?: boolean): this;
-  width(value?: number, margin = false): this | number {
+  width(value?: number, margin = false): any {
     return callSizeof.call(this, "width", "content", value, margin);
   }
   innerWidth(): number;
   innerWidth(value: number, margin?: boolean): this;
-  innerWidth(value?: number, margin = false): this | number {
+  innerWidth(value?: number, margin = false): any {
     return callSizeof.call(this, "width", "padding", value, margin);
   }
   outerWidth(): number;
   outerWidth(value: number, margin?: boolean): this;
-  outerWidth(value?: number, margin = false): this | number {
+  outerWidth(value?: number, margin = false): any {
     return callSizeof.call(this, "width", "", value, margin);
   }
 
