@@ -1491,7 +1491,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
 }
 
 function callSizeof(
-  this: Kijs,
+  this: any,
   type: "height" | "width",
   defaultExtra: "padding" | "content" | "",
   value: number,
