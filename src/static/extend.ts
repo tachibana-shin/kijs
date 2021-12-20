@@ -7,6 +7,8 @@ import { isFunction, isObject } from "../utils/is";
 
 // eslint-disable-next-line @typescript-eslint/ban-types
 function extend(deep: boolean, ...src: readonly object[]): any;
+// eslint-disable-next-line @typescript-eslint/ban-types
+function extend(...src: readonly object[]): any;
 function extend(this: any) {
   // eslint-disable-next-line functional/no-let
   let options,

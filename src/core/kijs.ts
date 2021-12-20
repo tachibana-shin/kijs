@@ -109,6 +109,11 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
 
     this.length = index;
   }
+  use<T = void>(pluginInstaller: (kijs: this, option: T) => void, options: T): this {
+    pluginInstaller(this, options);
+    
+    return this;
+  }
   each(
     callback: (
       this: TElement,
@@ -202,14 +207,25 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
       ...items
     );
   }
+  
   extend<T = any>(
     deep: boolean,
     // eslint-disable-next-line functional/functional-parameters
     ...src: readonly {
       readonly [key: string]: T;
     }[]
+  ): this;
+  extend<T = any>(
+    // eslint-disable-next-line functional/functional-parameters
+    ...src: readonly {
+      readonly [key: string]: T;
+    }[]
+  ): this;
+  extend(
+    // eslint-disable-next-line functional/functional-parameters
+    ...params: any[]
   ): this {
-    extend.call(this, deep, ...src);
+    extend.call(this, ...params);
     return this;
   }
   find<T extends Element>(selector: ParamNewKijs<T>): Kijs<T> {
