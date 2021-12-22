@@ -267,27 +267,28 @@ type Options<
     | "error"
     | "timeout"
     | "abort"
-    | "parsererror"
+    | "parsererror",
+  Context = XHR
 > = {
   accepts: {
     [key: string]: string;
   };
   async: boolean;
-  beforeSend: (this: XHR, xhr: XHR, options: Partial<Options>) => void | false;
+  beforeSend: (this: Context, xhr: XHR, options: Partial<Options>) => void | false;
   cache: boolean;
-  complete: (this: XHR, xhr: XHR, textStatus: TextStatus) => void;
+  complete: (this: Context, xhr: XHR, textStatus: TextStatus) => void;
   contents: {
     [key: string]: RegExp;
   };
   contentType: boolean | string;
-  context: any;
+  context: Context;
   converters: {
-    [key: string]: (this: XHR, text: string) => any;
+    [key: string]: (this: Context, text: string) => any;
   };
   crossDomain: boolean;
   data: Data;
-  dataFilter: (this: XHR, data: Data, type: DataType) => any;
-  error: (this: XHR, xhr, textStatus: TextStatus, errorText: string) => void;
+  dataFilter: (this: Context, data: Data, type: DataType) => any;
+  error: (this: Context, xhr, textStatus: TextStatus, errorText: string) => void;
   global: boolean;
   headers: {
     [key: string]: string;
@@ -307,7 +308,7 @@ type Options<
   statusCode: {
     [status: string | number]: (this: XHR) => void;
   };
-  success: (this: XHR, data: any, textStatus: TextStatus, xhr: XHR) => void;
+  success: (this: Context, data: any, textStatus: TextStatus, xhr: XHR) => void;
   traditional: boolean;
   type: "GET" | "POST" | "PUT" | "DELETE";
   url: string;
