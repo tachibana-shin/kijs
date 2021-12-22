@@ -64,6 +64,11 @@ function kijs<TElement = HTMLElement>(
 }
 
 class Kijs<TElement = HTMLElement, T = HTMLElement> {
+  static use<T = void>(pluginInstaller: (Kijs: Kijs, option?: T) => void, options: T): Kijs {
+    pluginInstaller(Kijs, options);
+    
+    return Kijs;
+  }
   // eslint-disable-next-line functional/prefer-readonly-type
   [index: number]: TElement;
   // eslint-disable-next-line functional/prefer-readonly-type
@@ -108,11 +113,6 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     });
 
     this.length = index;
-  }
-  use<T = void>(pluginInstaller: (kijs: this, option: T) => void, options: T): this {
-    pluginInstaller(this, options);
-    
-    return this;
   }
   each(
     callback: (
@@ -1658,3 +1658,4 @@ function toElements<TElement = HTMLElement, T = TElement>(
 
 export default kijs;
 export { Kijs };
+export const use = Kijs.use;

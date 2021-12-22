@@ -1,4 +1,4 @@
-export { default, Kijs } from "./core/kijs";
+export { default, Kijs, use } from "./core/kijs";
 export { default as globalEval } from "./static/globalEval";
 
 export { default as extend } from "./static/extend";
