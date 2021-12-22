@@ -41,15 +41,15 @@ function addToPrefiltersOrTransports(structure: Record<string, Function[]>) {
 }
 
 function inspectPrefiltersOrTransports(
-  structure,
-  options,
-  originalOptions,
-  jqXHR
+  structure: Record<string, Function[]>,
+  options: Partial<Options>,
+  originalOptions: Partial<Options>,
+  jqXHR: XHR
 ) {
   const inspected = {},
     seekingTransport = structure === transports;
 
-  function inspect(dataType) {
+  function inspect(dataType: string): void | string | Function {
     let selected;
     inspected[dataType] = true;
     each(structure[dataType] || [], (prefilterOrFactory) => {
@@ -76,7 +76,7 @@ function inspectPrefiltersOrTransports(
   return inspect(options.dataTypes[0]) || (!inspected["*"] && inspect("*"));
 }
 
-function ajaxExtend(target, src) {
+function ajaxExtend(target: Partial<Options>, src: Partial<Options>): Partial<Options> {
   let deep;
   const flatOptions = ajaxSettings.flatOptions || {};
 
@@ -92,7 +92,7 @@ function ajaxExtend(target, src) {
   return target;
 }
 
-function ajaxHandleResponses(s, jqXHR, responses) {
+function ajaxHandleResponses(s: Partial<Options>, jqXHR: XHR, responses: Response): any {
   let ct,
     type,
     finalDataType,
@@ -140,7 +140,10 @@ function ajaxHandleResponses(s, jqXHR, responses) {
   }
 }
 
-function ajaxConvert(s, response, jqXHR, isSuccess) {
+function ajaxConvert(s: Partial<Options>, response: Response, jqXHR: XHR, isSuccess: boolean): {
+  state: string;
+  data: any
+} {
   let conv2,
     current,
     conv,
@@ -396,7 +399,10 @@ function ajaxSetup(target: Options, settings: Options): Options {
 const ajaxPrefilter = addToPrefiltersOrTransports(prefilters);
 const ajaxTransport = addToPrefiltersOrTransports(transports);
 
-function ajax(url, options) {
+function ajax(url: string, options: Exclude<Partial<Options>, "url">): XHR;
+function ajax(options: Partial<Options>): XHR;
+
+function ajax(url: string | Partial<Options>, options?: Partial<Options>): XHR {
   if (typeof url === "object") {
     options = url;
     url = undefined;
@@ -764,16 +770,16 @@ function ajax(url, options) {
   return jqXHR;
 }
 
-function getJSON(url, data, callback) {
+function getJSON(url: string, data?: any, callback?: Required<Options>["success"]) {
   return get(url, data, callback, "json");
 }
 
-function getScript(url, callback) {
+function getScript(url: string, callback?: Required<Options>["success"]) {
   return get(url, undefined, callback, "script");
 }
 
-function createMethod(method) {
-  return function (url, data, callback, type) {
+function createMethod(method: string) {
+  return function (url: string, data?: any, callback?: Required<Options>["success"], type: Required<Options>["type"] = "GET"): XHR {
     if (isFunction(data)) {
       type = type || callback;
       callback = data;
@@ -795,7 +801,7 @@ function createMethod(method) {
   };
 }
 
-ajaxPrefilter(function (s) {
+ajaxPrefilter((s: Partial<Options>): void => {
   let i;
   for (i in s.headers) {
     if (i.toLowerCase() === "content-type") {
@@ -804,7 +810,7 @@ ajaxPrefilter(function (s) {
   }
 });
 
-function evalUrl(url, options, doc) {
+function evalUrl(url: string, options?: Partial<Options>, doc: Document = document) {
   return ajax({
     url: url,
 
@@ -833,7 +839,7 @@ const xhrSuccessStatus = {
 isSupport.cors = !!xhrSupported && "withCredentials" in xhrSupported;
 isSupport.ajax = xhrSupported = !!xhrSupported;
 
-ajaxTransport(function (options) {
+ajaxTransport((options) => {
   let callback, errorCallback;
 
   if (support.cors || (xhrSupported && !options.crossDomain)) {
@@ -941,7 +947,7 @@ ajaxTransport(function (options) {
   }
 });
 
-ajaxPrefilter(function (s) {
+ajaxPrefilter((s) => {
   if (s.crossDomain) {
     s.contents.script = false;
   }
@@ -964,7 +970,7 @@ ajaxSetup({
   },
 });
 
-ajaxPrefilter("script", function (s) {
+ajaxPrefilter("script", (s) => {
   if (s.cache === undefined) {
     s.cache = false;
   }
@@ -973,7 +979,7 @@ ajaxPrefilter("script", function (s) {
   }
 });
 
-ajaxTransport("script", function (s) {
+ajaxTransport("script", (s) => {
   if (s.crossDomain || s.scriptAttrs) {
     let script, callback;
     return {
@@ -1017,7 +1023,7 @@ ajaxSetup({
   },
 });
 
-ajaxPrefilter("json jsonp", function (s, originalSettings, jqXHR) {
+ajaxPrefilter("json jsonp", (s, originalSettings, jqXHR) => {
   let callbackName, overwritten, responseContainer;
   const jsonProp =
     s.jsonp !== false &&
@@ -1078,14 +1084,14 @@ ajaxPrefilter("json jsonp", function (s, originalSettings, jqXHR) {
   }
 });
 
-isSpport.createHTMLDocument = (function () {
+isSpport.createHTMLDocument = (() => {
   const body = document.implementation.createHTMLDocument("").body;
   body.innerHTML = "<form></form><form></form>";
   return body.childNodes.length === 2;
 })();
 
-function installer(Kijs) {
-  Kijs.prototype.load = function (url, params, callback) {
+function installer(Kijs: Kijs): void {
+  Kijs.prototype.load = function (url: string, params?: any, callback?: Required<Options>["success"]) {
     let selector,
       type,
       response,
