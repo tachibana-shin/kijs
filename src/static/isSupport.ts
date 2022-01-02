@@ -76,7 +76,7 @@ input = document.createElement("input");
 input.value = "t";
 input.type = "radio";
 
-export default {
+const support = {
   checkOn,
   optSelected: opt.selected,
   radioValue: input.value === "t",
@@ -134,3 +134,9 @@ export default {
     return reliableTrDimensionsVal;
   },
 };
+
+type Support = typeof support;
+
+const isSupport: Support = support;
+
+export default isSupport;

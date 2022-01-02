@@ -64,9 +64,12 @@ function kijs<TElement = HTMLElement>(
 }
 
 class Kijs<TElement = HTMLElement, T = HTMLElement> {
-  static use<T = void>(pluginInstaller: (Kijs: Kijs, option?: T) => void, options: T): Kijs {
+  static use<T = void>(
+    pluginInstaller: (Ki: typeof Kijs, option?: T) => void,
+    options: T
+  ): typeof Kijs {
     pluginInstaller(Kijs, options);
-    
+
     return Kijs;
   }
   // eslint-disable-next-line functional/prefer-readonly-type
@@ -207,23 +210,23 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
       ...items
     );
   }
-  
+
   extend<T = any>(
     deep: boolean,
-    // eslint-disable-next-line functional/functional-parameters
     ...src: readonly {
-      readonly [key: string]: T;
+      // eslint-disable-next-line functional/prefer-readonly-type
+      [key: string]: T;
     }[]
   ): this;
   extend<T = any>(
-    // eslint-disable-next-line functional/functional-parameters
     ...src: readonly {
-      readonly [key: string]: T;
+      // eslint-disable-next-line functional/prefer-readonly-type
+      [key: string]: T;
     }[]
   ): this;
   extend(
     // eslint-disable-next-line functional/functional-parameters
-    ...params: any[]
+    ...params: readonly any[]
   ): this {
     extend.call(this, ...params);
     return this;
@@ -1523,7 +1526,7 @@ function callSizeof(
   const extra = !!defaultExtra || (margin === true ? "margin" : "border");
 
   // eslint-disable-next-line functional/no-let
-  let result: number|void;
+  let result: number | void;
   this.each((elem: Element) => {
     // eslint-disable-next-line functional/no-let
     let doc;
