@@ -140,3 +140,4 @@ type Support = typeof support;
 const isSupport: Support = support;
 
 export default isSupport;
+export { Support };

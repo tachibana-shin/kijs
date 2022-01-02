@@ -14,6 +14,7 @@ export { default as grep } from "./static/grep";
 export { default as filter } from "./static/filter";
 export { default as map } from "./static/map";
 export { default as support } from "./static/isSupport";
+export type { Support } from "./static/isSupport";
 export { default as unique } from "./static/unique";
 export { default as text } from "./static/text";
 export { default as data, removeData, hasData } from "./static/data";
