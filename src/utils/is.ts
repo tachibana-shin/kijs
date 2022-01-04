@@ -39,8 +39,7 @@ export function isPlainObject<T extends Record<any, any>>(obj: any): obj is T {
 
   // Objects with prototype are plain iff they were constructed by a global Object function
   const Ctor =
-    emptyObject.hasOwnProperty.call(proto, "constructor") &&
-    proto.constructor;
+    emptyObject.hasOwnProperty.call(proto, "constructor") && proto.constructor;
   return (
     typeof Ctor === "function" &&
     emptyObject.hasOwnProperty.toString.call(Ctor) ===
