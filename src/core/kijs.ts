@@ -1051,7 +1051,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
   prop<T = any>(name: string): void | T;
   prop(props: {
     // eslint-disable-next-line functional/prefer-readonly-type
-    [name: string]: string;
+    [name: string | number | symbol]: any;
   }): this;
   prop<T = any>(name: string, value: T): this;
   prop<T = any>(name: any, value?: T) {
