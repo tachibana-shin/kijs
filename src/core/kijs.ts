@@ -1018,9 +1018,19 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
 
     return this;
   }
-  attr(name: string): this | string;
+  attr(name: string): string;
+  attr(attributes: {
+    // eslint-disable-next-line functional/prefer-readonly-type
+    [name: string]: string;
+  }): this;
   attr(name: string, value: string): this;
-  attr(name: string, value?: string) {
+  attr(name: any, value?: string) {
+    if (isObject(name)) {
+      each(name, (value, key: string) => this.attr(key, value));
+
+      return this;
+    }
+
     if (value === void 0) {
       return attr(this[0] as unknown as HTMLElement, name);
     }
@@ -1039,8 +1049,18 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     return this;
   }
   prop<T = any>(name: string): void | T;
+  prop(props: {
+    // eslint-disable-next-line functional/prefer-readonly-type
+    [name: string]: string;
+  }): this;
   prop<T = any>(name: string, value: T): this;
-  prop<T = any>(name: string, value?: T) {
+  prop<T = any>(name: any, value?: T) {
+    if (isObject(name)) {
+      each(name, (value, key: string) => this.prop(key, value));
+
+      return this;
+    }
+
     if (value === void 0) {
       return prop(this[0] as unknown as HTMLElement, name);
     }
