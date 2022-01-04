@@ -1,5 +1,7 @@
 import { isFunction, isPlainObject } from "../utils/is";
 
+import { Kijs } from "../core/kijs";
+
 import each from "./each";
 
 const rbracket = /\[\]$/;
@@ -9,7 +11,7 @@ function buildParams(
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   obj: any,
   traditional: boolean,
-  add: (key: string, value: any) => void
+  add: (key: string | number, value: any) => void
 ): void {
   if (Array.isArray(obj)) {
     // Serialize array item.
@@ -39,7 +41,7 @@ function buildParams(
 }
 
 function toParam(
-  data?:
+  data:
     | {
         name: string | number;
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -50,11 +52,11 @@ function toParam(
         [key: string | number]: any;
       }
     | Kijs,
-  traditional?: boolean
+  traditional = false
 ): string {
   const s = new Set<string>(),
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    add = function (key: string, valueOrFunction: any) {
+    add = function (key: string | number, valueOrFunction: any) {
       const value = isFunction(valueOrFunction)
         ? valueOrFunction()
         : valueOrFunction;
@@ -80,7 +82,7 @@ function toParam(
     }
   }
 
-  return s.join("&");
+  return Array.from(s.values()).join("&");
 }
 
 export default toParam;

@@ -21,11 +21,12 @@ export function isObject(obj: any) {
   return obj !== null && typeof obj === "object";
 }
 
+const emptyObject = {};
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function isPlainObject<T extends Record<any, any>>(obj: any): obj is T {
   // Detect obvious negatives
   // Use toString instead of jQuery.type to catch host objects
-  if (!obj || Object.prototype.toString.call(obj) !== "[object Object]") {
+  if (!obj || emptyObject.toString.call(obj) !== "[object Object]") {
     return false;
   }
 
@@ -38,11 +39,11 @@ export function isPlainObject<T extends Record<any, any>>(obj: any): obj is T {
 
   // Objects with prototype are plain iff they were constructed by a global Object function
   const Ctor =
-    Object.prototype.hasOwnProperty.call(proto, "constructor") &&
+    emptyObject.hasOwnProperty.call(proto, "constructor") &&
     proto.constructor;
   return (
     typeof Ctor === "function" &&
-    Object.prototye.hasOwnProperty.toString.call(Ctor) ===
-      Object.prototye.hasOwnProperty.toString.call(Object)
+    emptyObject.hasOwnProperty.toString.call(Ctor) ===
+      emptyObject.hasOwnProperty.toString.call(Object)
   );
 }
