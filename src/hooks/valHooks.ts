@@ -105,4 +105,20 @@ hooks.set("select", {
   },
 });
 
+each( [ "radio", "checkbox" ], (prop) => {
+	hooks.set( prop , {
+		set( elem, value ) {
+			if ( Array.isArray( value ) ) {
+				return ( elem.checked = jQuery.inArray( jQuery( elem ).val(), value ) > -1 );
+			}
+		}
+	})
+	if ( !support.checkOn ) {
+		hooks.get(prop)!.get = function( elem ) {
+			return elem.getAttribute( "value" ) === null ? "on" : elem.value;
+		};
+	}
+} );
+
+
 export default hooks;
