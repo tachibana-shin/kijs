@@ -26,8 +26,8 @@ export { default as cssHooks } from "./hooks/cssHooks";
 export { default as propHooks } from "./hooks/propHooks";
 export { default as valHooks } from "./hooks/valHooks";
 
-export { default as style } from "./static/style";
-export { default as css } from "./static/css";
+export { default as style, finalPropName, vendorPropName } from "./static/style";
+export { default as css, curCSS } from "./static/css";
 export { default as attr, removeAttr } from "./static/attr";
 export { default as prop, removeProp } from "./static/prop";
 export { default as val } from "./static/value";
