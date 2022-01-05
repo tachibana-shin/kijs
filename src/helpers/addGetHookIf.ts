@@ -1,18 +1,18 @@
-export default function addGetHookIf(conditionFn: () => boolean, hookFn) {
-
-  // Define the hook, we'll check on the first run if it's really needed.
+export default function addGetHookIf(
+  conditionFn: () => boolean,
+  // eslint-disable-next-line @typescript-eslint/ban-types
+  hookFn: Function
+) {
   return {
-    get: function() {
+    get() {
       if (conditionFn()) {
-
-        // Hook not needed (or it's not possible to use it due
-        // to missing dependency), remove it.
-        delete this.get;
+        // eslint-disable-next-line functional/immutable-data, @typescript-eslint/no-explicit-any
+        delete (this as any).get;
         return;
       }
 
-      // Hook needed; redefine it so that the support test is not executed again.
-      return (this.get = hookFn).apply(this, arguments);
-    }
+      // eslint-disable-next-line functional/immutable-data, functional/functional-parameters, prefer-rest-params, @typescript-eslint/no-explicit-any
+      return ((this as any).get = hookFn).apply(this, arguments);
+    },
   };
 }

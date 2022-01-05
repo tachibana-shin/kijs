@@ -1546,7 +1546,7 @@ function callSizeof(
   const extra = !!defaultExtra || (margin === true ? "margin" : "border");
 
   // eslint-disable-next-line functional/no-let
-  let result: number | void;
+  let result: number | string | void;
   this.each((elem: Element) => {
     // eslint-disable-next-line functional/no-let
     let doc;

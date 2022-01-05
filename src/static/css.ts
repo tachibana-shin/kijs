@@ -77,7 +77,7 @@ function css<TElement extends HTMLElement>(
   name: string,
   extra: boolean | string,
   styles?: any
-): void;
+): string | number | void;
 
 function css<TElement extends HTMLElement>(
   elem: TElement,
@@ -89,9 +89,6 @@ function css<TElement extends HTMLElement>(
   const origName = camelCase(name),
     isCustomProp = rcustomProp.test(name);
 
-  // Make sure that we're working with the right name. We don't
-  // want to modify the value if it is a CSS custom property
-  // since they are user-defined.
   if (!isCustomProp) {
     name = finalPropName(origName);
   }
@@ -100,7 +97,8 @@ function css<TElement extends HTMLElement>(
 
   // If a hook was provided get the computed value from there
   if (hooks) {
-    val = hooks.get(elem, true, extra);
+    // eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+    val = hooks.get!(elem, true, extra);
   }
 
   // Otherwise, if a way to get the computed value exists, use that

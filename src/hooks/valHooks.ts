@@ -1,17 +1,22 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import kijs from "../core/kijs";
 import { stripAndCollapse } from "../static/className";
+import each from "../static/each";
+import isSupport from "../static/isSupport";
 import text from "../static/text";
 import value from "../static/value";
 
 const hooks = new Map<
   string,
   {
-    readonly get?: (elem: HTMLElement, prop: string) => string | null;
-    readonly set?: (
+    // eslint-disable-next-line functional/prefer-readonly-type
+    get?: (elem: HTMLElement, prop: string) => string | null | void;
+    // eslint-disable-next-line functional/prefer-readonly-type
+    set?: (
       elem: HTMLElement,
       value: any,
       prop: string
-    ) => string | null;
+    ) => string | null | boolean | void;
   }
 >();
 
@@ -105,20 +110,25 @@ hooks.set("select", {
   },
 });
 
-each( [ "radio", "checkbox" ], (prop) => {
-	hooks.set( prop , {
-		set( elem, value ) {
-			if ( Array.isArray( value ) ) {
-				return ( elem.checked = jQuery.inArray( jQuery( elem ).val(), value ) > -1 );
-			}
-		}
-	})
-	if ( !support.checkOn ) {
-		hooks.get(prop)!.get = function( elem ) {
-			return elem.getAttribute( "value" ) === null ? "on" : elem.value;
-		};
-	}
-} );
-
+each(["radio", "checkbox"], (prop) => {
+  hooks.set(prop, {
+    set(elem, value) {
+      if (Array.isArray(value)) {
+        // eslint-disable-next-line functional/immutable-data
+        return ((elem as HTMLInputElement).checked = value.includes(
+          kijs(elem).val()
+        ));
+      }
+    },
+  });
+  if (!isSupport.checkOn) {
+    // eslint-disable-next-line functional/immutable-data, @typescript-eslint/no-non-null-assertion
+    hooks.get(prop)!.get = (elem) => {
+      return elem.getAttribute("value") === null
+        ? "on"
+        : (elem as HTMLInputElement).value;
+    };
+  }
+});
 
 export default hooks;
