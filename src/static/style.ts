@@ -12,6 +12,9 @@ const cssPrefixes = ["Webkit", "Moz", "ms"],
   vendorProps = {}; // cache
 const clearCloneStyle = emptyStyle.backgroundClip === "content-box";
 
+const pnum = /[+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|)/.source;
+const rcssNum = new RegExp("^(?:([+-])=|)(" + pnum + ")([a-z%]*)$", "i");
+
 // auto add prefix to style name
 export function vendorPropName(name: string): string | void {
   const capName = name[0].toUpperCase() + name.slice(1);
@@ -40,9 +43,6 @@ export function finalPropName(name: string): string {
   // eslint-disable-next-line functional/immutable-data
   return ((vendorProps as any)[name] = vendorPropName(name) || name);
 }
-
-const pnum = /[+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|)/.source;
-const rcssNum = new RegExp("^(?:([+-])=|)(" + pnum + ")([a-z%]*)$", "i");
 
 export function adjustCSS<T extends HTMLElement>(
   elem: T,
