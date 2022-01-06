@@ -61,7 +61,7 @@ export function adjustCSS<T = HTMLElement>(
     maxIterations = 20;
   const currentValue = tween
     ? () => {
-        return tween.cur();
+        return tween.cur(prop);
       }
     : () => {
         return css(elem, prop, "");
