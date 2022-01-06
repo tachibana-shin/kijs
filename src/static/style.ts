@@ -40,74 +40,76 @@ export function finalPropName(name: string): string {
   return ((vendorProps as any)[name] = vendorPropName(name) || name);
 }
 
-const pnum = ( /[+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|)/ ).source;
-const rcssNum = new RegExp( "^(?:([+-])=|)(" + pnum + ")([a-z%]*)$", "i" );
+const pnum = /[+-]?(?:\d*\.|)\d+(?:[eE][+-]?\d+|)/.source;
+const rcssNum = new RegExp("^(?:([+-])=|)(" + pnum + ")([a-z%]*)$", "i");
 
-export function adjustCSS<T extends HTMLElement>( elem: T, prop: Record<string, string | number>, valueParts: string[], tween?: any): number {
-	var adjusted, scale,
-		maxIterations = 20,
-		currentValue = tween ?
-			function() {
-				return tween.cur();
-			} :
-			function() {
-				return jQuery.css( elem, prop, "" );
-			},
-		initial = currentValue(),
-		unit = valueParts && valueParts[ 3 ] || ( jQuery.cssNumber[ prop ] ? "" : "px" ),
+export function adjustCSS<T extends HTMLElement>(
+  elem: T,
+  prop: Record<string, string | number>,
+  valueParts: string[],
+  tween?: any
+): number {
+  var adjusted,
+    scale,
+    maxIterations = 20,
+    currentValue = tween
+      ? () => {
+          return tween.cur();
+        }
+      : () => {
+          return css(elem, prop, "");
+        },
+    initial = currentValue(),
+    unit = (valueParts && valueParts[3]) || (cssNumber[prop] ? "" : "px"),
+    // Starting value computation is required for potential unit mismatches
+    initialInUnit =
+      elem.nodeType &&
+      (cssNumber[prop] || (unit !== "px" && +initial)) &&
+      rcssNum.exec(css(elem, prop));
 
-		// Starting value computation is required for potential unit mismatches
-		initialInUnit = elem.nodeType &&
-			( jQuery.cssNumber[ prop ] || unit !== "px" && +initial ) &&
-			rcssNum.exec( jQuery.css( elem, prop ) );
+  if (initialInUnit && initialInUnit[3] !== unit) {
+    // Support: Firefox <=54
+    // Halve the iteration target value to prevent interference from CSS upper bounds (gh-2144)
+    initial = initial / 2;
 
-	if ( initialInUnit && initialInUnit[ 3 ] !== unit ) {
+    // Trust units reported by css
+    unit = unit || initialInUnit[3];
 
-		// Support: Firefox <=54
-		// Halve the iteration target value to prevent interference from CSS upper bounds (gh-2144)
-		initial = initial / 2;
+    // Iteratively approximate from a nonzero starting point
+    initialInUnit = +initial || 1;
 
-		// Trust units reported by jQuery.css
-		unit = unit || initialInUnit[ 3 ];
+    while (maxIterations--) {
+      // Evaluate and update our best guess (doubling guesses that zero out).
+      // Finish if the scale equals or crosses 1 (making the old*new product non-positive).
+      style(elem, prop, initialInUnit + unit);
+      if ((1 - scale) * (1 - (scale = currentValue() / initial || 0.5)) <= 0) {
+        maxIterations = 0;
+      }
+      initialInUnit = initialInUnit / scale;
+    }
 
-		// Iteratively approximate from a nonzero starting point
-		initialInUnit = +initial || 1;
+    initialInUnit = initialInUnit * 2;
+    style(elem, prop, initialInUnit + unit);
 
-		while ( maxIterations-- ) {
+    // Make sure we update the tween properties later on
+    valueParts = valueParts || [];
+  }
 
-			// Evaluate and update our best guess (doubling guesses that zero out).
-			// Finish if the scale equals or crosses 1 (making the old*new product non-positive).
-			jQuery.style( elem, prop, initialInUnit + unit );
-			if ( ( 1 - scale ) * ( 1 - ( scale = currentValue() / initial || 0.5 ) ) <= 0 ) {
-				maxIterations = 0;
-			}
-			initialInUnit = initialInUnit / scale;
+  if (valueParts) {
+    initialInUnit = +initialInUnit || +initial || 0;
 
-		}
-
-		initialInUnit = initialInUnit * 2;
-		jQuery.style( elem, prop, initialInUnit + unit );
-
-		// Make sure we update the tween properties later on
-		valueParts = valueParts || [];
-	}
-
-	if ( valueParts ) {
-		initialInUnit = +initialInUnit || +initial || 0;
-
-		// Apply relative offset (+=/-=) if specified
-		adjusted = valueParts[ 1 ] ?
-			initialInUnit + ( valueParts[ 1 ] + 1 ) * valueParts[ 2 ] :
-			+valueParts[ 2 ];
-		if ( tween ) {
-			tween.unit = unit;
-			tween.start = initialInUnit;
-			tween.end = adjusted;
-		}
-	}
-	return adjusted;
+    // Apply relative offset (+=/-=) if specified
+    adjusted = valueParts[1]
+      ? initialInUnit + (valueParts[1] + 1) * valueParts[2]
+      : +valueParts[2];
+    if (tween) {
+      tween.unit = unit;
+      tween.start = initialInUnit;
+      tween.end = adjusted;
+    }
+  }
+  return adjusted;
 }
-
 
 export default function style<TElement extends HTMLElement>(
   elem: TElement,
@@ -136,13 +138,13 @@ export default function style<TElement extends HTMLElement>(
   // Check if we're setting a value
   if (value !== undefined) {
     type = typeof value;
-    
-		// Convert "+=" or "-=" to relative numbers (#7345)
-		if ( type === "string" && ( ret = rcssNum.exec( value ) ) && ret[ 1 ] ) {
-			value = adjustCSS( elem, name, ret );
-			
-			type = "number";
-		}
+
+    // Convert "+=" or "-=" to relative numbers (#7345)
+    if (type === "string" && (ret = rcssNum.exec(value)) && ret[1]) {
+      value = adjustCSS(elem, name, ret);
+
+      type = "number";
+    }
 
     if (value == null || value != value) {
       return;
