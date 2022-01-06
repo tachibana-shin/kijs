@@ -4,6 +4,7 @@ import cssProps from "../constants/cssProps";
 import cssHooks from "../hooks/cssHooks";
 
 import camelCase from "./camelCase";
+import css from "./css";
 
 const crustalProp = /^--/;
 const cssPrefixes = ["Webkit", "Moz", "ms"],
@@ -45,44 +46,52 @@ const rcssNum = new RegExp("^(?:([+-])=|)(" + pnum + ")([a-z%]*)$", "i");
 
 export function adjustCSS<T extends HTMLElement>(
   elem: T,
-  prop: Record<string, string | number>,
-  valueParts: string[],
+  prop: string,
+  valueParts: readonly (number | string)[],
   tween?: any
 ): number {
-  var adjusted,
+  // eslint-disable-next-line functional/no-let
+  let adjusted,
     scale,
-    maxIterations = 20,
-    currentValue = tween
-      ? () => {
-          return tween.cur();
-        }
-      : () => {
-          return css(elem, prop, "");
-        },
-    initial = currentValue(),
-    unit = (valueParts && valueParts[3]) || (cssNumber[prop] ? "" : "px"),
+    maxIterations = 20;
+  const currentValue = tween
+    ? () => {
+        return tween.cur();
+      }
+    : () => {
+        return css(elem, prop, "");
+      };
+  // eslint-disable-next-line functional/no-let
+  let initial = currentValue(),
+    unit =
+      ((valueParts && valueParts[3]) as string) ||
+      (cssNumber[prop as keyof typeof cssNumber] ? "" : "px"),
     // Starting value computation is required for potential unit mismatches
-    initialInUnit =
+    initialInUnit: false | number | RegExpExecArray | null =
       elem.nodeType &&
-      (cssNumber[prop] || (unit !== "px" && +initial)) &&
-      rcssNum.exec(css(elem, prop));
+      (cssNumber[prop as keyof typeof cssNumber] ||
+        (unit !== "px" && +initial)) &&
+      rcssNum.exec(css(elem, prop) as string);
 
-  if (initialInUnit && initialInUnit[3] !== unit) {
+  if (initialInUnit && (initialInUnit as RegExpExecArray)[3] !== unit) {
     // Support: Firefox <=54
     // Halve the iteration target value to prevent interference from CSS upper bounds (gh-2144)
     initial = initial / 2;
 
     // Trust units reported by css
-    unit = unit || initialInUnit[3];
+    unit = unit || (initialInUnit as RegExpExecArray)[3];
 
     // Iteratively approximate from a nonzero starting point
     initialInUnit = +initial || 1;
 
+    // eslint-disable-next-line functional/no-loop-statement
     while (maxIterations--) {
-      // Evaluate and update our best guess (doubling guesses that zero out).
-      // Finish if the scale equals or crosses 1 (making the old*new product non-positive).
       style(elem, prop, initialInUnit + unit);
-      if ((1 - scale) * (1 - (scale = currentValue() / initial || 0.5)) <= 0) {
+      if (
+        (1 - (scale as number)) *
+          (1 - (scale = currentValue() / initial || 0.5)) <=
+        0
+      ) {
         maxIterations = 0;
       }
       initialInUnit = initialInUnit / scale;
@@ -95,16 +104,20 @@ export function adjustCSS<T extends HTMLElement>(
     valueParts = valueParts || [];
   }
 
-  if (valueParts) {
-    initialInUnit = +initialInUnit || +initial || 0;
+  /* if (valueParts) */ {
+    initialInUnit = +(initialInUnit as number) || +initial || 0;
 
     // Apply relative offset (+=/-=) if specified
     adjusted = valueParts[1]
-      ? initialInUnit + (valueParts[1] + 1) * valueParts[2]
+      ? initialInUnit +
+        ((valueParts[1] as number) + 1) * (valueParts[2] as number)
       : +valueParts[2];
     if (tween) {
+      // eslint-disable-next-line functional/immutable-data
       tween.unit = unit;
+      // eslint-disable-next-line functional/immutable-data
       tween.start = initialInUnit;
+      // eslint-disable-next-line functional/immutable-data
       tween.end = adjusted;
     }
   }
@@ -140,7 +153,7 @@ export default function style<TElement extends HTMLElement>(
     type = typeof value;
 
     // Convert "+=" or "-=" to relative numbers (#7345)
-    if (type === "string" && (ret = rcssNum.exec(value)) && ret[1]) {
+    if (type === "string" && (ret = rcssNum.exec(value as string)) && ret[1]) {
       value = adjustCSS(elem, name, ret);
 
       type = "number";
