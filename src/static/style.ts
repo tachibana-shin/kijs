@@ -46,20 +46,23 @@ export function finalPropName(name: string): string {
 }
 
 function adjustCSS(
-    elem: any,
-    prop: string,
-    valueParts: readonly(number | string)[] | string
-  ): number 
+  elem: any,
+  prop: string,
+  valueParts: readonly (number | string)[] | string
+): number;
 function adjustCSS(
-    elem: any,
-    prop: string,
-    valueParts: readonly(number | string)[] | string,
-    currentValueCustom: () => number
-  ): {
-    unit: string;
-    start: number;
-    end: number;
-  }
+  elem: any,
+  prop: string,
+  valueParts: readonly (number | string)[] | string,
+  currentValueCustom: () => number
+): {
+  // eslint-disable-next-line functional/prefer-readonly-type
+  unit: string;
+  // eslint-disable-next-line functional/prefer-readonly-type
+  start: number;
+  // eslint-disable-next-line functional/prefer-readonly-type
+  end: number;
+};
 function adjustCSS(
   elem: any,
   prop: string,
@@ -130,8 +133,8 @@ function adjustCSS(
       return {
         unit,
         start,
-        end
-      }
+        end,
+      };
     }
   }
   return adjusted;
