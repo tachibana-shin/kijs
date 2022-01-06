@@ -45,12 +45,27 @@ export function finalPropName(name: string): string {
   return ((vendorProps as any)[name] = vendorPropName(name) || name);
 }
 
+function adjustCSS < T = HTMLElement > (
+    elem: T,
+    prop: string,
+    valueParts: readonly(number | string)[] | string
+  ): number 
+function adjustCSS < T = HTMLElement > (
+    elem: T,
+    prop: string,
+    valueParts: readonly(number | string)[] | string,
+    currentValueCustom: () => number
+  ): {
+    unit: string;
+    start: number;
+    end: number;
+  }
 export function adjustCSS<T = HTMLElement>(
   elem: T,
   prop: string,
   valueParts: readonly (number | string)[] | string,
-  tween?: any
-): number {
+  currentValueCustom?: () => number
+) {
   if (typeof valueParts === "string") {
     valueParts = rcssNum.exec(valueParts) as unknown as RegExpExecArray;
   }
@@ -59,13 +74,7 @@ export function adjustCSS<T = HTMLElement>(
   let adjusted,
     scale,
     maxIterations = 20;
-  const currentValue = tween
-    ? () => {
-        return tween.cur(prop);
-      }
-    : () => {
-        return css(elem, prop, "");
-      };
+  const currentValue = currentValueCustom || (() => css(elem, prop, ""));
   // eslint-disable-next-line functional/no-let
   let initial = currentValue(),
     unit =
@@ -117,13 +126,12 @@ export function adjustCSS<T = HTMLElement>(
       ? initialInUnit +
         ((valueParts[1] as number) + 1) * (valueParts[2] as number)
       : +valueParts[2];
-    if (tween) {
-      // eslint-disable-next-line functional/immutable-data
-      tween.unit = unit;
-      // eslint-disable-next-line functional/immutable-data
-      tween.start = initialInUnit;
-      // eslint-disable-next-line functional/immutable-data
-      tween.end = adjusted;
+    if (currentValueCustom) {
+      return {
+        unit,
+        start,
+        end
+      }
     }
   }
   return adjusted;
