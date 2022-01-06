@@ -45,13 +45,13 @@ export function finalPropName(name: string): string {
   return ((vendorProps as any)[name] = vendorPropName(name) || name);
 }
 
-function adjustCSS < T = HTMLElement > (
-    elem: T,
+function adjustCSS(
+    elem: any,
     prop: string,
     valueParts: readonly(number | string)[] | string
   ): number 
-function adjustCSS < T = HTMLElement > (
-    elem: T,
+function adjustCSS(
+    elem: any,
     prop: string,
     valueParts: readonly(number | string)[] | string,
     currentValueCustom: () => number
@@ -60,8 +60,8 @@ function adjustCSS < T = HTMLElement > (
     start: number;
     end: number;
   }
-export function adjustCSS<T = HTMLElement>(
-  elem: T,
+function adjustCSS(
+  elem: any,
   prop: string,
   valueParts: readonly (number | string)[] | string,
   currentValueCustom?: () => number
@@ -136,6 +136,8 @@ export function adjustCSS<T = HTMLElement>(
   }
   return adjusted;
 }
+
+export { adjustCSS };
 
 export default function style<TElement extends HTMLElement>(
   elem: TElement,
