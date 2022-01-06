@@ -71,6 +71,11 @@ function css<TElement extends HTMLElement>(
   elem: TElement,
   name: string
 ): string | number | void;
+function css<TElement extends HTMLElement>(
+  elem: TElement,
+  name: string,
+  extra: true
+): number;
 
 function css<TElement extends HTMLElement>(
   elem: TElement,
