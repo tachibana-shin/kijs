@@ -5,6 +5,7 @@ import cssHooks from "../hooks/cssHooks";
 
 import camelCase from "./camelCase";
 import css from "./css";
+import trim from "./trim";
 
 const crustalProp = /^--/;
 const cssPrefixes = ["Webkit", "Moz", "ms"],
@@ -47,9 +48,13 @@ export function finalPropName(name: string): string {
 export function adjustCSS<T extends HTMLElement>(
   elem: T,
   prop: string,
-  valueParts: readonly (number | string)[],
+  valueParts: readonly (number | string)[] | string,
   tween?: any
 ): number {
+  if (typeof valueParts === "string") {
+    valueParts = rcssNum.exec(valueParts);
+  }
+
   // eslint-disable-next-line functional/no-let
   let adjusted,
     scale,
