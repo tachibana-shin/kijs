@@ -77,7 +77,8 @@ function adjustCSS(
   let adjusted,
     scale,
     maxIterations = 20;
-  const currentValue = currentValueCustom || (() => css(elem, prop, ""));
+  const currentValue =
+    currentValueCustom || (() => css(elem, prop, "") as number);
   // eslint-disable-next-line functional/no-let
   let initial = currentValue(),
     unit =
@@ -132,8 +133,8 @@ function adjustCSS(
     if (currentValueCustom) {
       return {
         unit,
-        start,
-        end,
+        start: initialInUnit,
+        end: adjusted,
       };
     }
   }
