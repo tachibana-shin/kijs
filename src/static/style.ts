@@ -52,7 +52,7 @@ export function adjustCSS<T extends HTMLElement>(
   tween?: any
 ): number {
   if (typeof valueParts === "string") {
-    valueParts = rcssNum.exec(valueParts);
+    valueParts = rcssNum.exec(valueParts) as unknown as RegExpExecArray;
   }
 
   // eslint-disable-next-line functional/no-let
