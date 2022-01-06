@@ -45,7 +45,7 @@ export function finalPropName(name: string): string {
   return ((vendorProps as any)[name] = vendorPropName(name) || name);
 }
 
-export function adjustCSS<T extends HTMLElement>(
+export function adjustCSS<T = HTMLElement>(
   elem: T,
   prop: string,
   valueParts: readonly (number | string)[] | string,
