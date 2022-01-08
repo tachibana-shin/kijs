@@ -66,7 +66,7 @@ function kijs<TElement = HTMLElement>(
 class Kijs<TElement = HTMLElement, T = HTMLElement> {
   static use<T = void>(
     pluginInstaller: (Ki: typeof Kijs, option?: T) => void,
-    options: T
+    options?: T
   ): typeof Kijs {
     pluginInstaller(Kijs, options);
 
