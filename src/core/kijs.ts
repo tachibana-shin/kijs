@@ -978,7 +978,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     value: CSSStyleDeclaration[Prop] | number
   ): this;
   css<Prop extends keyof CSSStyleDeclaration>(css: {
-    readonly [prop: string]: CSSStyleDeclaration[Prop];
+    readonly [prop: string]: CSSStyleDeclaration[Prop] | number;
   }): this;
   css(prop: any, value?: any) {
     if (Array.isArray(prop)) {
