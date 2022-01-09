@@ -1,11 +1,11 @@
 import { Kijs } from "./kijs";
 import { isFunction } from "../utils/is";
 
-type Plugin<T> = (
+type Plugin<T> = ((
   Ki: typeof Kijs,
-  ...option: T
+  ...option: readonly T[]
 ) =>
-  | void
+  | void)
   | ({
       // eslint-disable-next-line functional/prefer-readonly-type, @typescript-eslint/no-explicit-any
       [key: string]: any;
@@ -15,7 +15,7 @@ type Plugin<T> = (
 // eslint-disable-next-line  @typescript-eslint/no-explicit-any
 const installedPlugins = new WeakSet<Plugin<any>>();
 
-function use(plugin: Plugin<T>, ...options: T): typeof Kijs {
+function use<T = void>(plugin: Plugin<T>, ...options: readonly T[]): typeof Kijs {
   if (installedPlugins.has(plugin)) {
     console.warn(`Plugin has already been applied to target app.`);
   } else if (plugin && isFunction(plugin.install)) {
@@ -23,7 +23,7 @@ function use(plugin: Plugin<T>, ...options: T): typeof Kijs {
     plugin.install(Kijs, ...options);
   } else if (isFunction(plugin)) {
     installedPlugins.add(plugin);
-    plugin(app, ...options);
+    plugin(Kijs, ...options);
   } else {
     console.warn(
       `A plugin must either be a function or an object with an "install" ` +
