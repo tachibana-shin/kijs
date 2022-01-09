@@ -6,10 +6,7 @@ type Plugin<T> = ((
   ...option: readonly T[]
 ) =>
   | void)
-  | ({
-      // eslint-disable-next-line functional/prefer-readonly-type, @typescript-eslint/no-explicit-any
-      [key: string]: any;
-    } & {
+  | (any & {
       install: (Ki: typeof Kijs, ...option: readonly T[]) => void;
     });
 // eslint-disable-next-line  @typescript-eslint/no-explicit-any
