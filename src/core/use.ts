@@ -10,7 +10,7 @@ type Plugin<T> = ((
       // eslint-disable-next-line functional/prefer-readonly-type, @typescript-eslint/no-explicit-any
       [key: string]: any;
     } & {
-      install: (Ki: typeof Kijs, ...option: T) => void;
+      install: (Ki: typeof Kijs, ...option: readonly T[]) => void;
     });
 // eslint-disable-next-line  @typescript-eslint/no-explicit-any
 const installedPlugins = new WeakSet<Plugin<any>>();
