@@ -16,6 +16,7 @@ import each from "../static/each";
 import { off, on, one, weakCacheEvent } from "../static/event";
 import extend from "../static/extend";
 import offset from "../static/offset";
+import use from "./use";
 import pageOffset from "../static/pageOffset";
 import position from "../static/position";
 import prop, { removeProp } from "../static/prop";
@@ -64,14 +65,7 @@ function kijs<TElement = HTMLElement>(
 }
 
 class Kijs<TElement = HTMLElement, T = HTMLElement> {
-  static use<T = void>(
-    pluginInstaller: (Ki: typeof Kijs, option?: T) => void,
-    options?: T
-  ): typeof Kijs {
-    pluginInstaller(Kijs, options);
-
-    return Kijs;
-  }
+  static use = use;
   // eslint-disable-next-line functional/prefer-readonly-type
   [index: number]: TElement;
   // eslint-disable-next-line functional/prefer-readonly-type
@@ -1681,4 +1675,3 @@ function toElements<TElement = HTMLElement, T = TElement>(
 
 export default kijs;
 export { Kijs };
-export const use = Kijs.use;

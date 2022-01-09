@@ -1,5 +1,5 @@
 // eslint-disable-next-line @typescript-eslint/ban-types, @typescript-eslint/no-explicit-any
-export function isFunction(e: any): e is Function {
+export function isFunction<T extends Function>(e: any): e is T {
   return typeof e === "function" && typeof e.nodeType !== "number";
 }
 
@@ -17,7 +17,7 @@ export function isArrayLike<T = any>(
 }
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function isObject(obj: any) {
+export function isObject<T extends object>(obj: any): obj is T {
   return obj !== null && typeof obj === "object";
 }
 
