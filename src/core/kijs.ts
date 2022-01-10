@@ -158,7 +158,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
   get(index: number): TElement | void {
     return this[index < -1 ? this.length + index : index];
   }
-  pushStack(elements: ArrayLike<TElement>): Kijs<TElement> {
+  pushStack<T = TElement>(elements: ArrayLike<T>): Kijs<T> {
     return new Kijs(elements, this);
   }
   slice(start: number, end?: number): Kijs<TElement> {
