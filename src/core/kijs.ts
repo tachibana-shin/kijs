@@ -137,6 +137,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
       ) as readonly T[]
     );
   }
+  filter(selector: ParamNewKijs<TElement>): Kijs<TElement>;
   filter(
     callback: (
       this: TElement,
@@ -144,10 +145,31 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
       index: number,
       kijs: this
     ) => boolean | void
+  ): Kijs<TElement>;
+  filter(
+    callback:
+      | ParamNewKijs<TElement>
+      | ((
+          this: TElement,
+          element: TElement,
+          index: number,
+          kijs: this
+        ) => boolean | void)
   ): Kijs<TElement> {
+    if (typeof selector === "function") {
+      return this.pushStack(
+        Array.prototype.filter.call(this, (el, index) =>
+          callback.call(el, el, index, this)
+        ) as readonly TElement[]
+      );
+    }
+
+    const elements = Array.from(new Kijs(selector)); /* free */
+
     return this.pushStack(
-      Array.prototype.filter.call(this, (el, index) =>
-        callback.call(el, el, index, this)
+      Array.prototype.filter.call(
+        this,
+        (el, index) => elements.includes(value) === false
       ) as readonly TElement[]
     );
   }
@@ -165,7 +187,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     return this.pushStack(Array.prototype.slice.call(this, start, end));
   }
   eq(index: number): Kijs<TElement> {
-    return this.pushStack(this.get(index));
+    return new Kijs(this.get(index), this);
   }
   first(): Kijs<TElement> {
     return this.eq(0);
@@ -250,20 +272,24 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
   }
   not(selector: ParamNewKijs<TElement>): Kijs<TElement>;
   not(
-    filter: (this: TElement, index: number, element: TElement) => void | boolean
+    filter: (
+      this: TElement,
+      element: TElement,
+      index: number,
+      kijs: this
+    ) => boolean | void
   ): Kijs<TElement>;
-  not(selector: any) {
-    if (typeof selector === "function") {
-      return this.filter((value, index) => {
-        return !selector.call(value, index, value);
-      });
-    }
-
-    const elements = Array.from(new Kijs(selector)); /* free */
-
-    return this.filter((value) => {
-      return elements.includes(value) === false;
-    });
+  not(
+    filter:
+      | ParamNewKijs<TElement>
+      | ((
+          this: TElement,
+          element: TElement,
+          index: number,
+          kijs: this
+        ) => boolean | void)
+  ): Kijs<TElement> {
+    return this.filter(filter);
   }
   is(selector: ParamNewKijs<TElement>): Kijs<TElement>;
   is(
@@ -357,11 +383,11 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
   ): Kijs<TElement> {
     return this.pushStack(new Kijs(selector, this, context).toArray());
   }
-  addBack(selector: ParamNewKijs<TElement>): Kijs<TElement> {
+  addBack(selector?: ParamNewKijs<TElement>): Kijs<TElement> {
     return this.add(
-      selector === undefined
+      (selector === undefined
         ? this.#prevObject
-        : this.#prevObject.filter(selector)
+        : this.#prevObject?.filter(selector)) || new Kijs()
     );
   }
   parent<T = Node>(selector?: string): Kijs<T> {
