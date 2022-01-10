@@ -43,7 +43,8 @@ type ParamNewKijs<TElement = HTMLElement> =
   | Node
   | Window
   | void
-  | null;
+  | null
+  | Kijs;
 type CustomElementAdd = string | Element | Text;
 
 const rSelector = /[a-zA-Z_]|\.|\*|:|>|#/;
@@ -54,7 +55,7 @@ const rCRLF = /\r?\n/g,
 const rcheckableType = /^(?:checkbox|radio)$/i;
 
 function kijs<TElement = HTMLElement>(
-  selector: ParamNewKijs<TElement>,
+  selector?: ParamNewKijs<TElement>,
   prevObject?: Kijs,
   context = document
 ) {
@@ -74,42 +75,45 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
   readonly #context: Document;
   readonly kijs = true;
   constructor(
-    selector: ParamNewKijs<TElement>,
+    selector?: ParamNewKijs<TElement>,
     prevObject?: Kijs<T>,
     context = document
   ) {
     this.#prevObject = prevObject;
     this.#context = context;
 
-    const elements = new Set<TElement>();
-    if (typeof selector === "string") {
-      // document
-      selector = trim(selector);
+    if (selector) {
+      const elements = new Set<TElement>();
+      if (typeof selector === "string") {
+        // document
+        selector = trim(selector);
 
-      if (rSelector.test(selector[0])) {
-        // this is query
-        this.#context.querySelectorAll<HTMLElement>(selector).forEach((el) => {
-          elements.add(el as any);
-        });
-      } else {
-        // <
-        // create element
-        createFragment(selector).childNodes.forEach((el) => {
-          elements.add(el as any);
-        });
+        if (rSelector.test(selector[0])) {
+          // this is query
+          this.#context
+            .querySelectorAll<HTMLElement>(selector)
+            .forEach((el) => {
+              elements.add(el as any);
+            });
+        } else {
+          // <
+          // create element
+          createFragment(selector).childNodes.forEach((el) => {
+            elements.add(el as any);
+          });
+        }
+      } else if (isArrayLike<TElement>(selector)) {
+        each(selector, (i) => elements.add(i));
       }
-    }
-    if (isArrayLike<TElement>(selector)) {
-      each(selector, (i) => elements.add(i));
-    }
 
-    // eslint-disable-next-line functional/no-let
-    let index = 0;
-    Array.from(elements.values()).forEach((item) => {
-      this[index++] = item;
-    });
+      // eslint-disable-next-line functional/no-let
+      let index = 0;
+      elements.forEach((item) => {
+        this[index++] = item;
+      });
 
-    this.length = index;
+      this.length = index;
+    }
   }
   each(
     callback: (
@@ -147,7 +151,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     ) => boolean | void
   ): Kijs<TElement>;
   filter(
-    callback:
+    selector:
       | ParamNewKijs<TElement>
       | ((
           this: TElement,
@@ -159,12 +163,12 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     if (typeof selector === "function") {
       return this.pushStack(
         Array.prototype.filter.call(this, (el, index) =>
-          callback.call(el, el, index, this)
+          selector.call(el, el, index, this)
         ) as readonly TElement[]
       );
     }
 
-    const elements = Array.from(new Kijs(selector)); /* free */
+    const elements = new Kijs(selector).toArray(); /* free */
 
     return this.pushStack(
       Array.prototype.filter.call(
@@ -306,7 +310,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
       });
     }
 
-    const elements = Array.from(new Kijs(selector)); /* free */
+    const elements = new Kijs(selector).toArray(); /* free */
 
     return this.filter((value) => {
       return elements.includes(value);
@@ -437,7 +441,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     excludeSelector?: ParamNewKijs<T>,
     selector?: string
   ): Kijs<TElement> {
-    const exclude = new Kijs(excludeSelector || []).toArray();
+    const exclude = new Kijs(excludeSelector).toArray();
     const elements = new Set<TElement>();
 
     if (selector === void 0) {
@@ -554,7 +558,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     selectorExclude?: ParamNewKijs<T>,
     selector?: string
   ): Kijs<TElement> {
-    const exclude = new Kijs(selectorExclude || []).toArray();
+    const exclude = new Kijs(selectorExclude).toArray();
     const elements = new Set<TElement>();
 
     if (selector === void 0) {
@@ -585,7 +589,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     selectorExclude?: ParamNewKijs<T>,
     selector?: string
   ): Kijs<R> {
-    const exclude = new Kijs(selectorExclude || []).toArray();
+    const exclude = new Kijs(selectorExclude).toArray();
     const elements = new Set<R>();
 
     if (selector === void 0) {
