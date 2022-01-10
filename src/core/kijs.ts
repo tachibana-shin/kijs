@@ -45,7 +45,7 @@ type ParamNewKijs<TElement = HTMLElement> =
   | Window
   | void
   | null
-  | Kijs;
+  | Kijs<TElement>;
 type CustomElementAdd = string | Element | Text;
 
 const rSelector = /[a-zA-Z_]|\.|\*|:|>|#/;
@@ -173,9 +173,11 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
   toArray(): TElement[] {
     return Array.from(this);
   }
-  get(index?: number): TElement | void {
+  get(): TElement[];
+  get(index: number): TElement | void;
+  get(index?: number): TElement | void | TElement[] {
     if (index === undefined) {
-      return this.slice(0);
+      return Array.from(this);
     }
     return this[index < -1 ? this.length + index : index];
   }
@@ -389,7 +391,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     return this.add(
       (selector === undefined
         ? this.#prevObject
-        : this.#prevObject?.filter(selector)) || new Kijs()
+        : this.#prevObject?.filter(selector)) || new Kijs() as any
     );
   }
   parent<T = Node>(selector?: string): Kijs<T> {
