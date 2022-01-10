@@ -16,6 +16,7 @@ import each from "../static/each";
 import { off, on, one, weakCacheEvent } from "../static/event";
 import extend from "../static/extend";
 import offset from "../static/offset";
+import unique from "../static/unique";
 import use from "./use";
 import pageOffset from "../static/pageOffset";
 import position from "../static/position";
@@ -172,7 +173,10 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
   toArray(): TElement[] {
     return Array.from(this);
   }
-  get(index: number): TElement | void {
+  get(index?: number): TElement | void {
+    if (index === undefined) {
+      return this.slice(0);
+    }
     return this[index < -1 ? this.length + index : index];
   }
   pushStack<T = TElement>(elements: ArrayLike<T>): Kijs<T> {
@@ -363,13 +367,25 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
       selector instanceof Kijs ? selector[0] : selector
     );
   }
-  add(
-    selector: ParamNewKijs<TElement>,
+  add<T = TElement>(
+    selector: ParamNewKijs<T>,
     context = this.#context
-  ): Kijs<TElement> {
-    return this.pushStack(new Kijs(selector, this, context).toArray());
+  ): Kijs<TElement | T> {
+    return this.pushStack(
+      unique([...new Kijs(selector, this, context).toArray(), ...this.get()])
+    );
   }
-  addBack(selector?: ParamNewKijs<TElement>): Kijs<TElement> {
+
+  addBack(selector?: ParamNewKijs<TElement>): Kijs<TElement>;
+  addBack(
+    filter: (
+      this: TElement,
+      element: TElement,
+      index: number,
+      kijs: this
+    ) => boolean | void
+  ): Kijs<TElement>;
+  addBack(selector?: any): Kijs<TElement> {
     return this.add(
       (selector === undefined
         ? this.#prevObject
