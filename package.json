@@ -1,6 +1,6 @@
 {
   "name": "kijs",
-  "version": "0.0.2-b28",
+  "version": "0.0.2-b29",
   "main": "dist/kijs.umd.js",
   "exports": {
     ".": {
