@@ -31,8 +31,8 @@ import createFragment from "../utils/createFragment";
 import getStyles from "../utils/getStyles";
 import { isArrayLike, isFunction, isObject } from "../utils/is";
 
-// eslint-disable-next-line functional/prefer-readonly-type
-type TypeOrArray<T> = T | T[] | readonly T[] | ArrayLike<T>;
+// eslint-disable-next-line functional/prefer-readonly-type, @typescript-eslint/ban-types
+type TypeOrArray<T> = T | T[] | readonly T[] | (ArrayLike<T> & object);
 // type Node = Element | Text | Comment | Document | DocumentFragment;
 type htmlString = string;
 type Selector = keyof HTMLElementTagNameMap & keyof SVGElementTagNameMap;
