@@ -736,46 +736,46 @@ class Kijs<
             removeData(value, key);
         });
     }
-    on<T extends Event>(name: string, callback: (this: TElement, event: T) => void): this;
-    on<T extends Event>(
+    on(name: string, callback: (this: TElement, event: any) => void): this;
+    on(
         name: string,
         selector: string,
-        callback: (this: TElement, event: T) => void
+        callback: (this: TElement, event: any) => void
     ): this;
-    on<T extends Event>(
+    on(
         name: string,
         selector: any,
-        callback?: (this: TElement, event: T) => void
+        callback?: (this: TElement, event: any) => void
     ): this {
         on(this, name, selector, callback as any);
 
         return this;
     }
-    one<T extends Event>(name: string, callback: (this: TElement, event: T) => void): this;
-    one<T extends Event>(
+    one(name: string, callback: (this: TElement, event: any) => void): this;
+    one(
         name: string,
         selector: string,
-        callback: (this: TElement, event: T) => void
+        callback: (this: TElement, event: any) => void
     ): this;
-    one<T extends Event>(
+    one(
         name: string,
         selector: any,
-        callback?: (this: TElement, event: T) => void
+        callback?: (this: TElement, event: any) => void
     ): this {
         one(this, name, selector, callback as any);
 
         return this;
     }
-    off<T extends Event>(name?: string, callback?: (this: TElement, event: T) => void): this;
-    off<T extends Event>(
+    off(name?: string, callback?: (this: TElement, event: any) => void): this;
+    off(
         name: string,
         selector: string,
-        callback: (this: TElement, event: T) => void
+        callback: (this: TElement, event: any) => void
     ): this;
-    off<T extends Event>(
+    off(
         name: string,
         selector: any,
-        callback?: (this: TElement, event: T) => void
+        callback?: (this: TElement, event: any) => void
     ): this {
         off(this, name, selector, callback as any);
 
