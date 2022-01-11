@@ -60,7 +60,8 @@ type ParamNewKijs<TElement = HTMLElement> =
   | Node
   | Window
   | void
-  | null;
+  | null
+  | Kijs;
 //   | Kijs<TElement>;
 type CustomElementAdd = string | Element | Text;
 
@@ -735,55 +736,46 @@ class Kijs<
       removeData(value, key);
     });
   }
-  on<N extends string, E extends Event>(
-    name: N,
-    callback: (this: TElement, event: E) => void
-  ): this;
-  on<N extends string, E extends Event>(
-    name: N,
+  on(name: string, callback: (this: TElement, event: Event) => void): this;
+  on(
+    name: string,
     selector: string,
-    callback: (this: TElement, event: E) => void
+    callback: (this: TElement, event: Event) => void
   ): this;
-  on<N extends string, E extends Event>(
-    name: N,
+  on(
+    name: string,
     selector: any,
-    callback?: (this: TElement, event: E) => void
+    callback?: (this: TElement, event: Event) => void
   ): this {
     on(this, name, selector, callback as any);
 
     return this;
   }
-  one<N extends string, E extends Event>(
-    name: N,
-    callback: (this: TElement, event: E) => void
-  ): this;
-  one<N extends string, E extends Event>(
-    name: N,
+  one(name: string, callback: (this: TElement, event: Event) => void): this;
+  one(
+    name: string,
     selector: string,
-    callback: (this: TElement, event: E) => void
+    callback: (this: TElement, event: Event) => void
   ): this;
-  one<N extends string, E extends Event>(
-    name: N,
+  one(
+    name: string,
     selector: any,
-    callback?: (this: TElement, event: E) => void
+    callback?: (this: TElement, event: Event) => void
   ): this {
     one(this, name, selector, callback as any);
 
     return this;
   }
-  off<N extends string, E extends Event>(
-    name?: N,
-    callback?: (this: TElement, event: E) => void
-  ): this;
-  off<N extends string, E extends Event>(
-    name: N,
+  off(name?: N, callback?: (this: TElement, event: Event) => void): this;
+  off(
+    name: string,
     selector: string,
-    callback: (this: TElement, event: E) => void
+    callback: (this: TElement, event: Event) => void
   ): this;
-  off<N extends string, E extends Event>(
-    name: N,
+  off(
+    name: string,
     selector: any,
-    callback?: (this: TElement, event: E) => void
+    callback?: (this: TElement, event: Event) => void
   ): this {
     off(this, name, selector, callback as any);
 
@@ -1040,12 +1032,12 @@ class Kijs<
       }
     });
   }
+  attr(name: string, value: string): this;
   attr(name: string): string;
   attr(attributes: {
     // eslint-disable-next-line functional/prefer-readonly-type
     [name: string]: string;
   }): this;
-  attr(name: string, value: string): this;
   attr(name: any, value?: string) {
     if (isObject(name)) {
       each(name, (value, key: string) => this.attr(key, value));
@@ -1353,30 +1345,24 @@ class Kijs<
     return this;
   }
 
-  bind<N extends string, E extends Event>(
-    name: N,
-    callback: (this: TElement, event: E) => void
-  ): this {
+  bind(name: string, callback: (this: TElement, event: Event) => void): this {
     return this.on(name, callback);
   }
-  unbind<N extends string, E extends Event>(
-    name: N,
-    callback: (this: TElement, event: E) => void
-  ): this {
+  unbind(name: string, callback: (this: TElement, event: Event) => void): this {
     return this.off(name, callback);
   }
 
-  delegate<N extends string, E extends Event>(
+  delegate(
     selector: string,
-    name: N,
-    callback: (this: TElement, event: E) => void
+    name: string,
+    callback: (this: TElement, event: Event) => void
   ): this {
     return this.on(name, selector, callback);
   }
-  undelegate<N extends string, E extends Event>(
+  undelegate(
     selector: string,
-    name: N,
-    callback: (this: TElement, event: E) => void
+    name: string,
+    callback: (this: TElement, event: Event) => void
   ): this {
     // ( namespace ) or ( selector, types [, fn] )
     // eslint-disable-next-line functional/functional-parameters
