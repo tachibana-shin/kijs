@@ -32,8 +32,8 @@ import { isArrayLike, isFunction, isObject } from "../utils/is";
 
 import use from "./use";
 
-// eslint-disable-next-line functional/prefer-readonly-type
 type ArrayLikeNotIsString<T> =
+  // eslint-disable-next-line functional/prefer-readonly-type
   | T[]
   | ((
       | {
