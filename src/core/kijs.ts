@@ -976,18 +976,11 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     new Kijs(selector).replaceWith(this as unknown as ArrayLike<Element>);
     return this;
   }
-  css<Prop extends keyof CSSStyleDeclaration>(
-    props: readonly Prop[]
-  ): Record<Prop, CSSStyleDeclaration[Prop]>;
-  css<Prop extends keyof CSSStyleDeclaration>(
-    prop: Prop
-  ): CSSStyleDeclaration[Prop];
-  css<Prop extends keyof CSSStyleDeclaration>(
-    prop: Prop,
-    value: CSSStyleDeclaration[Prop] | number
-  ): this;
-  css<Prop extends keyof CSSStyleDeclaration>(css: {
-    readonly [prop: string]: CSSStyleDeclaration[Prop] | number;
+  css(props: readonly string[]): Record<string, string>;
+  css(prop: string): string;
+  css(prop: string, value: string | number): this;
+  css(css: {
+    readonly [prop: string]: string | number;
   }): this;
   css(prop: any, value?: any) {
     if (Array.isArray(prop)) {
