@@ -739,7 +739,7 @@ class Kijs<
   on(
     name: string,
     callback: (
-      this: TElement extends Window ? typeof self : TElement,
+      this: TElement extends Window ? any : TElement,
       event: any
     ) => void
   ): this;
@@ -766,7 +766,7 @@ class Kijs<
   one(
     name: string,
     callback: (
-      this: TElement extends Window ? typeof self : TElement,
+      this: TElement extends Window ? any : TElement,
       event: any
     ) => void
   ): this;
@@ -793,7 +793,7 @@ class Kijs<
   off(
     name?: string,
     callback?: (
-      this: TElement extends Window ? typeof self : TElement,
+      this: TElement extends Window ? any : TElement,
       event: any
     ) => void
   ): this;
