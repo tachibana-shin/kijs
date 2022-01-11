@@ -1266,7 +1266,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     });
   }
 
-  unwrap(selector: string): this {
+  unwrap(selector?: string): this {
     this.parent(selector)
       .not("body")
       .each((e) => {
