@@ -16,8 +16,6 @@ import each from "../static/each";
 import { off, on, one, weakCacheEvent } from "../static/event";
 import extend from "../static/extend";
 import offset from "../static/offset";
-import unique from "../static/unique";
-import use from "./use";
 import pageOffset from "../static/pageOffset";
 import position from "../static/position";
 import prop, { removeProp } from "../static/prop";
@@ -26,26 +24,39 @@ import style from "../static/style";
 import getText from "../static/text";
 import toParam from "../static/toParam";
 import trim from "../static/trim";
+import unique from "../static/unique";
 import value from "../static/value";
 import createFragment from "../utils/createFragment";
 import getStyles from "../utils/getStyles";
 import { isArrayLike, isFunction, isObject } from "../utils/is";
 
-// eslint-disable-next-line functional/prefer-readonly-type, @typescript-eslint/ban-types
-type TypeOrArray<T> = T | T[] | readonly T[] | (ArrayLike<T> & object);
+import use from "./use";
+
+// eslint-disable-next-line functional/prefer-readonly-type
+type ArrayLikeNotIsString<T> = T[] | (({
+    // eslint-disable-next-line functional/prefer-readonly-type
+    [key: string | number | symbol]: any;
+} | Function) & {
+    // eslint-disable-next-line functional/prefer-readonly-type
+    length: number;
+} & {
+    // eslint-disable-next-line functional/prefer-readonly-type
+    [index: number]: T;
+})
+type TypeOrArray<T> = T | ArrayLikeNotIsString<T>;
 // type Node = Element | Text | Comment | Document | DocumentFragment;
 type htmlString = string;
 type Selector = keyof HTMLElementTagNameMap & keyof SVGElementTagNameMap;
 
 type ParamNewKijs<TElement = HTMLElement> =
   | Selector
-  | TypeOrArray<TElement>
+  | (TElement extends string ? TypeOrArray<HTMLElement> : TypeOrArray<TElement>)
   | htmlString
   | Node
   | Window
   | void
   | null
-  | Kijs<TElement>;
+  | Kijs<TElement extends string ? HTMLElement : TElement>;
 type CustomElementAdd = string | Element | Text;
 
 const rSelector = /[a-zA-Z_]|\.|\*|:|>|#/;
@@ -67,7 +78,7 @@ function kijs<TElement = HTMLElement>(
 }
 
 class Kijs<TElement = HTMLElement, T = HTMLElement> {
-  static use = use;
+  static readonly use = use;
   // eslint-disable-next-line functional/prefer-readonly-type
   [index: number]: TElement;
   // eslint-disable-next-line functional/prefer-readonly-type
@@ -165,7 +176,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     return this.pushStack(
       Array.prototype.filter.call(
         this,
-        (el, index) => elements.includes(el) === false
+        (el) => elements.includes(el) === false
       ) as readonly TElement[]
     );
   }
@@ -173,22 +184,24 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
   toArray(): TElement[] {
     return Array.from(this);
   }
-  get(): TElement[];
+  get(): readonly TElement[];
   get(index: number): TElement | void;
-  get(index?: number): TElement | void | TElement[] {
+  get(index?: number): TElement | void | readonly TElement[] {
     if (index === undefined) {
       return Array.from(this);
     }
     return this[index < -1 ? this.length + index : index];
   }
-  pushStack<T = TElement>(elements: ArrayLike<T>): Kijs<T> {
+  pushStack<T = TElement>(elements: ArrayLikeNotIsString<T>): Kijs<T> {
     return new Kijs(elements, this);
   }
   slice(start: number, end?: number): Kijs<TElement> {
     return this.pushStack(Array.prototype.slice.call(this, start, end));
   }
   eq(index: number): Kijs<TElement> {
-    return new Kijs(this.get(index), this);
+    const item = this.get(index);
+
+    return this.pushStack(item === void 0 ? [] : [item]);
   }
   first(): Kijs<TElement> {
     return this.eq(0);
@@ -259,7 +272,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     }
 
     return this.pushStack(
-      new Kijs(selector).filter((value) => {
+      new Kijs(selector).filter((value: any) => {
         // eslint-disable-next-line functional/no-let
         let { length } = this;
 
@@ -334,7 +347,7 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     }
 
     return this.pushStack(
-      new Kijs(selector).filter((value) => {
+      new Kijs(selector).filter((value: any) => {
         // eslint-disable-next-line functional/no-let
         let ok = false;
         this.each((v: any) => {
@@ -822,11 +835,11 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     // eslint-disable-next-line functional/functional-parameters
     ...contents: readonly (
       | CustomElementAdd
-      | ArrayLike<CustomElementAdd>
+      | ArrayLikeNotIsString<CustomElementAdd>
       | ((
           index: number,
           html: string
-        ) => CustomElementAdd | ArrayLike<CustomElementAdd>)
+        ) => CustomElementAdd | ArrayLikeNotIsString<CustomElementAdd>)
     )[]
   ): this {
     return this.each((el) => {
@@ -848,11 +861,11 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     // eslint-disable-next-line functional/functional-parameters
     ...contents: readonly (
       | CustomElementAdd
-      | ArrayLike<CustomElementAdd>
+      | ArrayLikeNotIsString<CustomElementAdd>
       | ((
           index: number,
           html: string
-        ) => CustomElementAdd | ArrayLike<CustomElementAdd>)
+        ) => CustomElementAdd | ArrayLikeNotIsString<CustomElementAdd>)
     )[]
   ): this {
     return this.each((el) => {
@@ -874,11 +887,11 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     // eslint-disable-next-line functional/functional-parameters
     ...contents: readonly (
       | CustomElementAdd
-      | ArrayLike<CustomElementAdd>
+      | ArrayLikeNotIsString<CustomElementAdd>
       | ((
           index: number,
           html: string
-        ) => CustomElementAdd | ArrayLike<CustomElementAdd>)
+        ) => CustomElementAdd | ArrayLikeNotIsString<CustomElementAdd>)
     )[]
   ): this {
     return this.each((el) => {
@@ -900,11 +913,11 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     // eslint-disable-next-line functional/functional-parameters
     ...contents: readonly (
       | CustomElementAdd
-      | ArrayLike<CustomElementAdd>
+      | ArrayLikeNotIsString<CustomElementAdd>
       | ((
           index: number,
           html: string
-        ) => CustomElementAdd | ArrayLike<CustomElementAdd>)
+        ) => CustomElementAdd | ArrayLikeNotIsString<CustomElementAdd>)
     )[]
   ): this {
     return this.each((el) => {
@@ -944,11 +957,11 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     // eslint-disable-next-line functional/functional-parameters
     ...contents: readonly (
       | CustomElementAdd
-      | ArrayLike<CustomElementAdd>
+      | ArrayLikeNotIsString<CustomElementAdd>
       | ((
           index: number,
           html: string
-        ) => CustomElementAdd | ArrayLike<CustomElementAdd>)
+        ) => CustomElementAdd | ArrayLikeNotIsString<CustomElementAdd>)
     )[]
   ): this {
     this.after(...contents);
@@ -957,23 +970,23 @@ class Kijs<TElement = HTMLElement, T = HTMLElement> {
     return this;
   }
   appendTo(selector: ParamNewKijs<Element>): this {
-    new Kijs(selector).append(this as unknown as ArrayLike<Element>);
+    new Kijs(selector).append(this as unknown as ArrayLikeNotIsString<Element>);
     return this;
   }
   prependTo(selector: ParamNewKijs<Element>): this {
-    new Kijs(selector).prepend(this as unknown as ArrayLike<Element>);
+    new Kijs(selector).prepend(this as unknown as ArrayLikeNotIsString<Element>);
     return this;
   }
   insertAfter(selector: ParamNewKijs<Element>): this {
-    new Kijs(selector).after(this as unknown as ArrayLike<Element>);
+    new Kijs(selector).after(this as unknown as ArrayLikeNotIsString<Element>);
     return this;
   }
   insertBefore(selector: ParamNewKijs<Element>): this {
-    new Kijs(selector).before(this as unknown as ArrayLike<Element>);
+    new Kijs(selector).before(this as unknown as ArrayLikeNotIsString<Element>);
     return this;
   }
   replaceAll(selector: ParamNewKijs<Element>): this {
-    new Kijs(selector).replaceWith(this as unknown as ArrayLike<Element>);
+    new Kijs(selector).replaceWith(this as unknown as ArrayLikeNotIsString<Element>);
     return this;
   }
   css(props: readonly string[]): Record<string, string>;
@@ -1604,7 +1617,7 @@ function toElements<TElement = HTMLElement, T = TElement>(
   // eslint-disable-next-line functional/functional-parameters
   ...contents: readonly (
     | CustomElementAdd
-    | ArrayLike<CustomElementAdd>
+    | ArrayLikeNotIsString<CustomElementAdd>
     | Kijs<TElement, T>
     | Kijs
     | ((
@@ -1612,7 +1625,7 @@ function toElements<TElement = HTMLElement, T = TElement>(
         html: T
       ) =>
         | CustomElementAdd
-        | ArrayLike<CustomElementAdd>
+        | ArrayLikeNotIsString<CustomElementAdd>
         | Kijs<TElement, T>
         | Kijs)
   )[]
@@ -1624,7 +1637,7 @@ function toElements<TElement = HTMLElement, T = TElement>(
       it = it.call(elem, index, callParm(elem));
     }
 
-    if (isArrayLike(it)) {
+    if (isArrayLikeNotIsString(it)) {
       toElements(
         elem,
         callParm,
