@@ -33,16 +33,21 @@ import { isArrayLike, isFunction, isObject } from "../utils/is";
 import use from "./use";
 
 // eslint-disable-next-line functional/prefer-readonly-type
-type ArrayLikeNotIsString<T> = T[] | (({
-    // eslint-disable-next-line functional/prefer-readonly-type
-    [key: string | number | symbol]: any;
-} | Function) & {
-    // eslint-disable-next-line functional/prefer-readonly-type
-    length: number;
-} & {
-    // eslint-disable-next-line functional/prefer-readonly-type
-    [index: number]: T;
-})
+type ArrayLikeNotIsString<T> =
+  | T[]
+  | ((
+      | {
+          // eslint-disable-next-line functional/prefer-readonly-type
+          [key: string | number | symbol]: any;
+        }
+      | Function
+    ) & {
+      // eslint-disable-next-line functional/prefer-readonly-type
+      length: number;
+    } & {
+      // eslint-disable-next-line functional/prefer-readonly-type
+      [index: number]: T;
+    });
 // type TypeOrArray<T> = T | ArrayLikeNotIsString<T>;
 // type Node = Element | Text | Comment | Document | DocumentFragment;
 type htmlString = string;
@@ -55,7 +60,7 @@ type ParamNewKijs<TElement = HTMLElement> =
   | Node
   | Window
   | void
-  | null
+  | null;
 //   | Kijs<TElement>;
 type CustomElementAdd = string | Element | Text;
 
@@ -77,7 +82,15 @@ function kijs<T extends Kijs<any, any>, TElement = HTMLElement>(
   return new Kijs(selector, prevObject, context);
 }
 
-class Kijs<T extends Kijs<any, any> = Kijs<any, any>, TElementProp = HTMLElement, TElement = TElementProp extends string ? HTMLElement : TElementProp extends ArrayLikeNotIsString<infer R> ? R : TElementProp> {
+class Kijs<
+  T extends Kijs<any, any> = Kijs<any, any>,
+  TElementProp = HTMLElement,
+  TElement = TElementProp extends string
+    ? HTMLElement
+    : TElementProp extends ArrayLikeNotIsString<infer R>
+    ? R
+    : TElementProp
+> {
   static readonly use = use;
   // eslint-disable-next-line functional/prefer-readonly-type
   [index: number]: TElement;
@@ -161,7 +174,7 @@ class Kijs<T extends Kijs<any, any> = Kijs<any, any>, TElementProp = HTMLElement
       index: number,
       kijs: this
     ) => boolean | void
-  ):  Kijs<this, readonly TElement[]>;
+  ): Kijs<this, readonly TElement[]>;
   filter(selector: any) {
     if (typeof selector === "function") {
       return this.pushStack(
@@ -192,8 +205,10 @@ class Kijs<T extends Kijs<any, any> = Kijs<any, any>, TElementProp = HTMLElement
     }
     return this[index < -1 ? this.length + index : index];
   }
-  pushStack<T = TElement>(elements: ArrayLikeNotIsString<T>): Kijs<this, readonly T[]> {
-    return new Kijs(elements, this );
+  pushStack<T = TElement>(
+    elements: ArrayLikeNotIsString<T>
+  ): Kijs<this, readonly T[]> {
+    return new Kijs(elements, this);
   }
   slice(start: number, end?: number) {
     return this.pushStack(Array.prototype.slice.call(this, start, end));
@@ -206,7 +221,7 @@ class Kijs<T extends Kijs<any, any> = Kijs<any, any>, TElementProp = HTMLElement
   first() {
     return this.eq(0);
   }
-  last(){
+  last() {
     return this.eq(-1);
   }
   even() {
@@ -215,8 +230,8 @@ class Kijs<T extends Kijs<any, any> = Kijs<any, any>, TElementProp = HTMLElement
   odd() {
     return this.filter((_el, index) => index % 2 !== 0);
   }
-  end(): T{
-    return this.#prevObject || new Kijs() as T;
+  end(): T {
+    return this.#prevObject || (new Kijs() as T);
   }
   // eslint-disable-next-line functional/functional-parameters, functional/prefer-readonly-type
   push(...items: TElement[]): number {
@@ -281,7 +296,7 @@ class Kijs<T extends Kijs<any, any> = Kijs<any, any>, TElementProp = HTMLElement
             return true;
           }
         }
-      }) 
+      })
     );
   }
   not(selector: ParamNewKijs<TElement>): Kijs<this, readonly TElement[]>;
@@ -292,14 +307,14 @@ class Kijs<T extends Kijs<any, any> = Kijs<any, any>, TElementProp = HTMLElement
       index: number,
       kijs: this
     ) => boolean | void
-  ):  Kijs<this, readonly TElement[]>;
+  ): Kijs<this, readonly TElement[]>;
   not(filter: any) {
     return this.filter(filter);
   }
   is(selector: ParamNewKijs<TElement>): Kijs<this, readonly TElement[]>;
   is(
     filter: (this: TElement, index: number, element: TElement) => void | boolean
-  ):  Kijs<this, readonly TElement[]>;
+  ): Kijs<this, readonly TElement[]>;
   is(selector: any) {
     if (typeof selector === "function") {
       return this.filter(selector);
@@ -318,7 +333,7 @@ class Kijs<T extends Kijs<any, any> = Kijs<any, any>, TElementProp = HTMLElement
     });
   }
   readonly init = kijs;
-  has(element: ParamNewKijs<TElement>){
+  has(element: ParamNewKijs<TElement>) {
     const elements = new Kijs(element);
 
     return this.filter((value: { readonly contains?: Function }) => {
@@ -363,7 +378,7 @@ class Kijs<T extends Kijs<any, any> = Kijs<any, any>, TElementProp = HTMLElement
         });
 
         return ok;
-      }) 
+      })
     );
   }
   index(selector?: string | Kijs<any, TElement> | TElement): number {
@@ -382,10 +397,7 @@ class Kijs<T extends Kijs<any, any> = Kijs<any, any>, TElementProp = HTMLElement
       selector instanceof Kijs ? selector[0] : selector
     );
   }
-  add<T = TElement>(
-    selector: ParamNewKijs<T>,
-    context = this.#context
-  ) {
+  add<T = TElement>(selector: ParamNewKijs<T>, context = this.#context) {
     return this.pushStack(
       unique([...new Kijs(selector, this, context).toArray(), ...this.get()])
     );
@@ -404,7 +416,7 @@ class Kijs<T extends Kijs<any, any> = Kijs<any, any>, TElementProp = HTMLElement
     return this.add(
       (selector === undefined
         ? this.#prevObject
-        : this.#prevObject?.filter(selector)) || new Kijs() 
+        : this.#prevObject?.filter(selector)) || new Kijs()
     );
   }
   parent<T = Node>(selector?: string) {
@@ -453,7 +465,7 @@ class Kijs<T extends Kijs<any, any> = Kijs<any, any>, TElementProp = HTMLElement
   parentsUntil<T extends Element>(
     excludeSelector?: ParamNewKijs<T>,
     selector?: string
-  ){
+  ) {
     const exclude = new Kijs(excludeSelector).toArray();
     const elements = new Set<TElement>();
 
@@ -601,7 +613,7 @@ class Kijs<T extends Kijs<any, any> = Kijs<any, any>, TElementProp = HTMLElement
   prevUntil<R extends Element, T extends Element>(
     selectorExclude?: ParamNewKijs<T>,
     selector?: string
-  ){
+  ) {
     const exclude = new Kijs(selectorExclude).toArray();
     const elements = new Set<R>();
 
@@ -935,10 +947,7 @@ class Kijs<T extends Kijs<any, any> = Kijs<any, any>, TElementProp = HTMLElement
       }
     });
   }
-  clone(
-    dataAndEvent = false,
-    deepDataAndEvent: boolean = dataAndEvent
-  ) {
+  clone(dataAndEvent = false, deepDataAndEvent: boolean = dataAndEvent) {
     return this.map((elem: any) => clone(elem, dataAndEvent, deepDataAndEvent));
   }
   html(): string;
@@ -974,7 +983,9 @@ class Kijs<T extends Kijs<any, any> = Kijs<any, any>, TElementProp = HTMLElement
     return this;
   }
   prependTo(selector: ParamNewKijs<Element>): this {
-    new Kijs(selector).prepend(this as unknown as ArrayLikeNotIsString<Element>);
+    new Kijs(selector).prepend(
+      this as unknown as ArrayLikeNotIsString<Element>
+    );
     return this;
   }
   insertAfter(selector: ParamNewKijs<Element>): this {
@@ -986,15 +997,15 @@ class Kijs<T extends Kijs<any, any> = Kijs<any, any>, TElementProp = HTMLElement
     return this;
   }
   replaceAll(selector: ParamNewKijs<Element>): this {
-    new Kijs(selector).replaceWith(this as unknown as ArrayLikeNotIsString<Element>);
+    new Kijs(selector).replaceWith(
+      this as unknown as ArrayLikeNotIsString<Element>
+    );
     return this;
   }
   css(props: readonly string[]): Record<string, string>;
   css(prop: string): string;
   css(prop: string, value: string | number): this;
-  css(css: {
-    readonly [prop: string]: string | number;
-  }): this;
+  css(css: { readonly [prop: string]: string | number }): this;
   css(prop: any, value?: any) {
     if (Array.isArray(prop)) {
       const map = {} as any;
@@ -1625,8 +1636,7 @@ function toElements<TElement = HTMLElement, T = TElement>(
       ) =>
         | CustomElementAdd
         | ArrayLikeNotIsString<CustomElementAdd>
-        | Kijs<any, any>
-        )
+        | Kijs<any, any>)
   )[]
 ) {
   const elementsAdd = new Set<Node>();
