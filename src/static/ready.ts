@@ -66,13 +66,6 @@ function holdReady(wait: boolean): void {
   }
 }
 
-function $isReady(): boolean {
-  return isReady;
-}
-function $readyWait(): number {
-  return readyWait;
-}
-
 export default ready;
 
-export { holdReady, $isReady as isReady, $readyWait as readyWait };
+export { holdReady, isReady, readyWait };
