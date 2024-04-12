@@ -130,6 +130,8 @@ class Kijs<
         }
       } else if (isArrayLike<TElement>(selector)) {
         each(selector, (i) => elements.add(i));
+      } else {
+        elements.add(selector)
       }
 
       // eslint-disable-next-line functional/no-let
